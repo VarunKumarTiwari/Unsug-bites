@@ -33,3 +33,4 @@ packages/
 **Frontend SPA only**, fully driven by mock JSON. No real backend, no real maps integration, no real AI.
 ```
 
+# Unsug-bites
