@@ -1,0 +1,34 @@
+openapi: 3.0.3
+info:
+  title: Nutrition Service
+  version: 0.1.0
+
+paths:
+  /nutrition/{lookupKey}:
+    get:
+      summary: Get nutrition for a known dish key
+      parameters:
+        - { name: lookupKey, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/NutritionFact' }
+
+components:
+  schemas:
+    NutritionFact:
+      type: object
+      required: [calories, protein_g, carbs_g, fat_g]
+      properties:
+        calories: { type: number }
+        protein_g: { type: number }
+        carbs_g: { type: number }
+        fat_g: { type: number }
+        fiber_g: { type: number }
+        sugar_g: { type: number }
+        sodium_mg: { type: number }
+        flags:
+          type: array
+          items: { type: string, example: 'high-protein' }

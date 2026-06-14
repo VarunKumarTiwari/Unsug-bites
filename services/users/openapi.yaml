@@ -1,0 +1,34 @@
+openapi: 3.0.3
+info:
+  title: Users Service
+  version: 0.1.0
+
+paths:
+  /users/{id}:
+    get:
+      summary: Get a user profile
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/User' }
+
+components:
+  schemas:
+    User:
+      type: object
+      required: [id, displayName]
+      properties:
+        id: { type: string }
+        displayName: { type: string }
+        avatarUrl: { type: string, format: uri }
+        rank: { type: string }
+        preferredVibes:
+          type: array
+          items: { type: string }
+        dietary:
+          type: array
+          items: { type: string, example: 'vegetarian' }

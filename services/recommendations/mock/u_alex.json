@@ -1,0 +1,5 @@
+[
+  { "restaurantId": "r_el_taco_feliz", "reason": "Hidden gem near you, matches your Solo Dining vibe.",   "score": 0.93 },
+  { "restaurantId": "r_joes_pasta",     "reason": "Cozy Italian — based on your last 3 visits.",         "score": 0.88 },
+  { "restaurantId": "r_street_pho",     "reason": "Late-night spot underrated by locals.",                "score": 0.81 }
+]

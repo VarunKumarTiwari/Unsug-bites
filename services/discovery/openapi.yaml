@@ -1,0 +1,75 @@
+openapi: 3.0.3
+info:
+  title: Discovery Service
+  version: 0.1.0
+  description: Restaurant catalog + hidden-gem ranking.
+
+paths:
+  /restaurants/nearby:
+    get:
+      summary: List nearby restaurants ordered by hidden-gem score
+      parameters:
+        - { name: lat, in: query, required: true, schema: { type: number } }
+        - { name: lng, in: query, required: true, schema: { type: number } }
+        - { name: radius_m, in: query, schema: { type: integer, default: 2000 } }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/RestaurantSummary' }
+
+  /restaurants/{id}:
+    get:
+      summary: Full restaurant detail
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RestaurantDetail' }
+
+components:
+  schemas:
+    RestaurantSummary:
+      type: object
+      required: [id, name, cuisine, neighborhood, hiddenGemScore, heroImage, lat, lng]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        cuisine: { type: string }
+        neighborhood: { type: string }
+        hiddenGemScore: { type: number, description: '0..1, higher = more underrated' }
+        rating: { type: number }
+        reviewCount: { type: integer }
+        heroImage: { type: string, format: uri }
+        lat: { type: number }
+        lng: { type: number }
+        vibes: { type: array, items: { type: string } }
+
+    RestaurantDetail:
+      allOf:
+        - $ref: '#/components/schemas/RestaurantSummary'
+        - type: object
+          properties:
+            address: { type: string }
+            bestSellers:
+              type: array
+              items: { $ref: '#/components/schemas/Dish' }
+            unsungBites:
+              type: array
+              items: { $ref: '#/components/schemas/Dish' }
+
+    Dish:
+      type: object
+      required: [id, name, image]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        image: { type: string, format: uri }
+        priceCents: { type: integer }
+        description: { type: string }

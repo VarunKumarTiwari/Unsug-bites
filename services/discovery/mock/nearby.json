@@ -1,0 +1,54 @@
+[
+  {
+    "id": "r_joes_pasta",
+    "name": "Joe's Pasta",
+    "cuisine": "Homestyle Italian",
+    "neighborhood": "Red Hook",
+    "hiddenGemScore": 0.86,
+    "rating": 4.8,
+    "reviewCount": 142,
+    "heroImage": "https://images.unsplash.com/photo-1551183053-bf91a1d81141?w=1200",
+    "lat": 40.6782,
+    "lng": -74.0095,
+    "vibes": ["Cozy", "Date Night", "Local Favorite"]
+  },
+  {
+    "id": "r_el_taco_feliz",
+    "name": "El Taco Feliz",
+    "cuisine": "Mexican",
+    "neighborhood": "Sunset Park",
+    "hiddenGemScore": 0.91,
+    "rating": 4.7,
+    "reviewCount": 88,
+    "heroImage": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=1200",
+    "lat": 40.6541,
+    "lng": -74.0098,
+    "vibes": ["Casual", "Solo Dining", "Hidden Gem"]
+  },
+  {
+    "id": "r_focaccia_co",
+    "name": "Focaccia & Co.",
+    "cuisine": "Bakery / Cafe",
+    "neighborhood": "Carroll Gardens",
+    "hiddenGemScore": 0.78,
+    "rating": 4.6,
+    "reviewCount": 215,
+    "heroImage": "https://images.unsplash.com/photo-1585478259715-1c195ae2b568?w=1200",
+    "lat": 40.6794,
+    "lng": -73.9991,
+    "vibes": ["Morning", "Solo Dining"]
+  },
+  {
+    "id": "r_street_pho",
+    "name": "Street Pho",
+    "cuisine": "Vietnamese",
+    "neighborhood": "Bushwick",
+    "hiddenGemScore": 0.83,
+    "rating": 4.5,
+    "reviewCount": 64,
+    "heroImage": "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=1200",
+    "lat": 40.6944,
+    "lng": -73.9213,
+    "vibes": ["Late Night", "Hidden Gem"]
+  }
+]

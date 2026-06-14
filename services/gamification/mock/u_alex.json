@@ -1,0 +1,15 @@
+{
+  "userId": "u_alex",
+  "streakDays": 5,
+  "totalDishesLogged": 14,
+  "rank": "Explorer",
+  "rankProgress": 0.62,
+  "badges": [
+    { "id": "b_local_guide",     "title": "Local Guide",          "description": "Reviewed 5 nearby restaurants.", "unlocked": true,  "unlockedAt": "2026-05-08T19:00:00Z", "iconKey": "shield" },
+    { "id": "b_carbonara",       "title": "Carbonara Connoisseur","description": "Tried 3 carbonaras.",            "unlocked": true,  "unlockedAt": "2026-06-13T19:01:00Z", "iconKey": "medal" },
+    { "id": "b_noodle_ninja",    "title": "Noodle Ninja",         "description": "Logged 10 noodle dishes.",       "unlocked": true,  "unlockedAt": "2026-06-01T19:00:00Z", "iconKey": "bowl"  },
+    { "id": "b_hidden_hunter",   "title": "Hidden Hunter",        "description": "Visited 5 hidden gems.",         "unlocked": false, "unlockedAt": null, "iconKey": "compass" },
+    { "id": "b_dawn_patrol",     "title": "Dawn Patrol",          "description": "Reviewed 5 cafes before 9am.",   "unlocked": false, "unlockedAt": null, "iconKey": "sun" },
+    { "id": "b_solo_seeker",     "title": "Solo Seeker",          "description": "Logged 5 solo-dining visits.",   "unlocked": false, "unlockedAt": null, "iconKey": "leaf" }
+  ]
+}

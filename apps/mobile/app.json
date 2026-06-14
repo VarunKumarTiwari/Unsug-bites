@@ -1,0 +1,36 @@
+{
+  "expo": {
+    "name": "Unsung Bites",
+    "slug": "unsung-bites",
+    "version": "0.0.1",
+    "scheme": "unsung",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "backgroundColor": "#FDFCF7",
+      "resizeMode": "contain"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.unsung.bites"
+    },
+    "android": {
+      "package": "com.unsung.bites",
+      "adaptiveIcon": { "backgroundColor": "#FDFCF7" }
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      [
+        "expo-camera",
+        { "cameraPermission": "Unsung Bites uses your camera to scan dishes for ingredient + nutrition info." }
+      ]
+    ],
+    "experiments": { "typedRoutes": true }
+  }
+}

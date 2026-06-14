@@ -1,0 +1,22 @@
+[
+  {
+    "id": "rev_001",
+    "userId": "u_alex",
+    "restaurantId": "r_joes_pasta",
+    "dishName": "Truffle Carbonara",
+    "rating": 5,
+    "note": "Amazing texture!",
+    "scanId": "scn_01HXX0CARB",
+    "createdAt": "2026-06-13T18:45:00Z"
+  },
+  {
+    "id": "rev_002",
+    "userId": "u_alex",
+    "restaurantId": "r_focaccia_co",
+    "dishName": "Rosemary Focaccia",
+    "rating": 4,
+    "note": "Crisp crust, soft middle.",
+    "scanId": null,
+    "createdAt": "2026-05-20T13:10:00Z"
+  }
+]

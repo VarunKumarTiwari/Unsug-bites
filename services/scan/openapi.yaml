@@ -1,0 +1,39 @@
+openapi: 3.0.3
+info:
+  title: Scan Service
+  version: 0.1.0
+
+paths:
+  /scan:
+    post:
+      summary: Submit a food photo for AI dish detection
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image: { type: string, format: binary }
+                restaurantId: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ScanResult' }
+
+components:
+  schemas:
+    ScanResult:
+      type: object
+      required: [scanId, detectedDish, confidence, ingredients]
+      properties:
+        scanId: { type: string }
+        detectedDish: { type: string }
+        confidence: { type: number, description: '0..1' }
+        ingredients:
+          type: array
+          items: { type: string }
+        suggestedNutritionLookupKey: { type: string }
+        capturedAt: { type: string, format: date-time }

@@ -1,0 +1,27 @@
+openapi: 3.0.3
+info:
+  title: Recommendations Service
+  version: 0.1.0
+
+paths:
+  /recommendations/{userId}:
+    get:
+      summary: Personalized restaurant feed
+      parameters:
+        - { name: userId, in: path, required: true, schema: { type: string } }
+        - { name: lat, in: query, schema: { type: number } }
+        - { name: lng, in: query, schema: { type: number } }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required: [restaurantId, reason, score]
+                  properties:
+                    restaurantId: { type: string }
+                    reason: { type: string, example: 'You loved 2 cozy Italian spots' }
+                    score: { type: number }

@@ -1,0 +1,43 @@
+openapi: 3.0.3
+info:
+  title: Gamification Service
+  version: 0.1.0
+
+paths:
+  /gamification/{userId}:
+    get:
+      summary: Get user stats + unlocked badges
+      parameters:
+        - { name: userId, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/UserGameState' }
+
+components:
+  schemas:
+    UserGameState:
+      type: object
+      required: [userId, streakDays, totalDishesLogged, badges]
+      properties:
+        userId: { type: string }
+        streakDays: { type: integer }
+        totalDishesLogged: { type: integer }
+        rank: { type: string, example: 'Explorer' }
+        rankProgress: { type: number, description: '0..1 progress to next rank' }
+        badges:
+          type: array
+          items: { $ref: '#/components/schemas/Badge' }
+
+    Badge:
+      type: object
+      required: [id, title, unlocked]
+      properties:
+        id: { type: string }
+        title: { type: string }
+        description: { type: string }
+        unlocked: { type: boolean }
+        unlockedAt: { type: string, format: date-time, nullable: true }
+        iconKey: { type: string }

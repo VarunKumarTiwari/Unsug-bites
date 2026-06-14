@@ -1,0 +1,15 @@
+{
+  "scanId": "scn_01HXX0CARB",
+  "detectedDish": "Carbonara",
+  "confidence": 0.94,
+  "ingredients": [
+    "Fresh Pasta",
+    "Guanciale",
+    "Egg Yolk",
+    "Pecorino Romano",
+    "Black Truffle",
+    "Black Pepper"
+  ],
+  "suggestedNutritionLookupKey": "carbonara_truffle",
+  "capturedAt": "2026-06-13T18:42:11Z"
+}
