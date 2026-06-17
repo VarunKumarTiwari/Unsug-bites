@@ -2,19 +2,34 @@ import React from 'react';
 import { View, Pressable } from 'react-native';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
+import Animated, { useAnimatedStyle, SharedValue } from 'react-native-reanimated';
 import type { RestaurantSummary } from '@unsung/contracts';
 import { color, radius, shadow } from '@/theme/tokens';
 import { Text } from '@/components/primitives/Text';
 import { HiddenGemBadge } from './HiddenGemBadge';
 
+// expo-image isn't animatable by default — wrap it so Reanimated can drive transform
+const AnimatedExpoImage = Animated.createAnimatedComponent(Image);
+
+// Extra image height beyond the clipped container; gives parallax room to travel
+const ROW_IMG_HEIGHT = 200;
+const PARALLAX_EXTRA = 40;
+
 interface Props {
   restaurant: RestaurantSummary;
   layout?: 'grid' | 'row';
+  parallaxOffset?: SharedValue<number>;
 }
 
-export function RestaurantCard({ restaurant, layout = 'grid' }: Props) {
+export function RestaurantCard({ restaurant, layout = 'grid', parallaxOffset }: Props) {
   const router = useRouter();
   const r = restaurant;
+  const isParallax = layout === 'row' && !!parallaxOffset;
+
+  // Always called — returns identity transform when parallaxOffset is absent
+  const imageAnimStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: parallaxOffset?.value ?? 0 }],
+  }));
 
   return (
     <Pressable
@@ -30,10 +45,30 @@ export function RestaurantCard({ restaurant, layout = 'grid' }: Props) {
         shadow.card,
       ]}
     >
-      <View style={{ position: 'relative' }}>
-        <Image
+      {/* Image container — fixed height + overflow hidden when parallax is active */}
+      <View
+        style={{
+          position: 'relative',
+          ...(isParallax && { height: ROW_IMG_HEIGHT, overflow: 'hidden' }),
+        }}
+      >
+        <AnimatedExpoImage
           source={{ uri: r.heroImage }}
-          style={{ width: '100%', aspectRatio: layout === 'grid' ? 4 / 3 : 16 / 9 }}
+          style={[
+            isParallax
+              ? {
+                  width: '100%',
+                  // Oversized so there's bleed above and below the clip window
+                  height: ROW_IMG_HEIGHT + PARALLAX_EXTRA,
+                  // Pull up half the extra so at rest the image is centered
+                  marginTop: -(PARALLAX_EXTRA / 2),
+                }
+              : {
+                  width: '100%',
+                  aspectRatio: layout === 'grid' ? 4 / 3 : 16 / 9,
+                },
+            imageAnimStyle,
+          ]}
           contentFit="cover"
           transition={200}
         />
@@ -41,6 +76,7 @@ export function RestaurantCard({ restaurant, layout = 'grid' }: Props) {
           <HiddenGemBadge score={r.hiddenGemScore} />
         </View>
       </View>
+
       <View style={{ padding: 12 }}>
         <Text variant="h3" serif numberOfLines={1}>
           {r.name}

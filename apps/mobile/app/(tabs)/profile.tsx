@@ -1,17 +1,26 @@
 import React from 'react';
-import { View, ScrollView, ActivityIndicator } from 'react-native';
+import { View, ScrollView, ActivityIndicator, Pressable } from 'react-native';
 import { Image } from 'expo-image';
 import { useQuery } from '@tanstack/react-query';
 import { Screen } from '@/components/primitives/Screen';
 import { Text } from '@/components/primitives/Text';
+import { Button } from '@/components/primitives/Button';
 import { Badge } from '@/components/gamification/Badge';
 import { StreakFlame } from '@/components/gamification/StreakFlame';
 import { RestaurantCard } from '@/components/restaurant/RestaurantCard';
 import { color, radius, shadow } from '@/theme/tokens';
 import { users, gamification, discovery } from '@/lib/api';
+import { useAuthStore } from '@/lib/store/auth';
 
 export default function Profile() {
-  const { data: me } = useQuery({ queryKey: ['users', 'me'], queryFn: users.getMe });
+  const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
+  const toggle = useAuthStore((s) => s.toggle);
+
+  const { data: me } = useQuery({
+    queryKey: ['users', 'me'],
+    queryFn: users.getMe,
+    enabled: isLoggedIn,
+  });
   const { data: stats, isLoading } = useQuery({
     queryKey: ['gamification', 'u_alex'],
     queryFn: () => gamification.getState('u_alex'),
@@ -21,7 +30,7 @@ export default function Profile() {
     queryFn: () => discovery.getNearby(40.68, -74.0),
   });
 
-  if (isLoading || !stats || !me) {
+  if (isLoading || !stats) {
     return (
       <Screen>
         <ActivityIndicator color={color.accent} />
@@ -35,54 +44,56 @@ export default function Profile() {
   return (
     <Screen padded={false}>
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
-        {/* Hero */}
-        <View
-          style={{
-            backgroundColor: color.accent,
-            paddingHorizontal: 20,
-            paddingTop: 24,
-            paddingBottom: 36,
-            borderBottomLeftRadius: radius.xl,
-            borderBottomRightRadius: radius.xl,
-          }}
-        >
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-            {me.avatarUrl ? (
-              <Image
-                source={{ uri: me.avatarUrl }}
-                style={{ width: 64, height: 64, borderRadius: 999, borderWidth: 2, borderColor: color.surface }}
-              />
-            ) : (
-              <View style={{ width: 64, height: 64, borderRadius: 999, backgroundColor: color.surface }} />
-            )}
-            <View style={{ flex: 1 }}>
-              <Text variant="h2" serif tone="surface">
-                {me.displayName}
-              </Text>
-              <Text variant="small" tone="surface" style={{ opacity: 0.85, marginTop: 2 }}>
-                {stats.rank} · {Math.round((stats.rankProgress ?? 0) * 100)}% to next
-              </Text>
-            </View>
-          </View>
-
+        {/* Profile hero — only when logged in */}
+        {isLoggedIn && me && (
           <View
             style={{
-              marginTop: 16,
-              height: 6,
-              backgroundColor: 'rgba(255,255,255,0.25)',
-              borderRadius: 999,
-              overflow: 'hidden',
+              backgroundColor: color.accent,
+              paddingHorizontal: 20,
+              paddingTop: 24,
+              paddingBottom: 36,
+              borderBottomLeftRadius: radius.xl,
+              borderBottomRightRadius: radius.xl,
             }}
           >
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+              {me.avatarUrl ? (
+                <Image
+                  source={{ uri: me.avatarUrl }}
+                  style={{ width: 64, height: 64, borderRadius: 999, borderWidth: 2, borderColor: color.surface }}
+                />
+              ) : (
+                <View style={{ width: 64, height: 64, borderRadius: 999, backgroundColor: color.surface }} />
+              )}
+              <View style={{ flex: 1 }}>
+                <Text variant="h2" serif tone="surface">
+                  {me.displayName}
+                </Text>
+                <Text variant="small" tone="surface" style={{ opacity: 0.85, marginTop: 2 }}>
+                  {stats.rank} · {Math.round((stats.rankProgress ?? 0) * 100)}% to next
+                </Text>
+              </View>
+            </View>
+
             <View
               style={{
-                width: `${(stats.rankProgress ?? 0) * 100}%`,
-                height: '100%',
-                backgroundColor: color.surface,
+                marginTop: 16,
+                height: 6,
+                backgroundColor: 'rgba(255,255,255,0.25)',
+                borderRadius: 999,
+                overflow: 'hidden',
               }}
-            />
+            >
+              <View
+                style={{
+                  width: `${(stats.rankProgress ?? 0) * 100}%`,
+                  height: '100%',
+                  backgroundColor: color.surface,
+                }}
+              />
+            </View>
           </View>
-        </View>
+        )}
 
         <View style={{ paddingHorizontal: 20, marginTop: 20 }}>
           <Text variant="label" tone="muted">
@@ -125,6 +136,23 @@ export default function Profile() {
               </View>
             ))}
           </View>
+
+          {/* Dev toggle — tap to switch logged-in state for testing */}
+          <Pressable
+            onPress={toggle}
+            style={{
+              marginTop: 32,
+              alignSelf: 'center',
+              backgroundColor: color.stone,
+              paddingVertical: 8,
+              paddingHorizontal: 16,
+              borderRadius: radius.pill,
+            }}
+          >
+            <Text variant="small" weight="medium" tone="muted">
+              DEV: {isLoggedIn ? 'Log out' : 'Log in (mock)'}
+            </Text>
+          </Pressable>
         </View>
       </ScrollView>
     </Screen>
