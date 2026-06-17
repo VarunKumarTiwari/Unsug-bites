@@ -15,9 +15,9 @@ export function HiddenGemBadge({ score }: Props) {
       style={{
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: color.accentSoft,
+        backgroundColor: 'rgba(255,255,255,0.92)',
         borderRadius: radius.pill,
-        paddingVertical: 4,
+        paddingVertical: 5,
         paddingHorizontal: 10,
         alignSelf: 'flex-start',
       }}

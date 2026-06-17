@@ -51,6 +51,11 @@ export default function TabsLayout() {
           tabBarIcon: ({ color: c, size }) => <User size={size - 2} color={c} />,
         }}
       />
+      {/* Detail screens — inside tab navigator so the tab bar stays visible */}
+      <Tabs.Screen
+        name="restaurant/[id]"
+        options={{ href: null }}
+      />
     </Tabs>
   );
 }
