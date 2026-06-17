@@ -8,7 +8,7 @@ import {
   LayoutAnimation,
   Platform,
   UIManager,
-  Modal,
+  AccessibilityInfo,
 } from 'react-native';
 import Animated, {
   useAnimatedScrollHandler,
@@ -19,10 +19,24 @@ import Animated, {
   FadeIn,
   FadeInDown,
   FadeOut,
+  SlideInUp,
+  SlideOutUp,
   useDerivedValue,
+  runOnJS,
+  withTiming,
+  withSpring,
+  withSequence,
+  withDelay,
+  Easing,
+  useAnimatedReaction,
 } from 'react-native-reanimated';
 import { useQuery } from '@tanstack/react-query';
-import { Search, MapPin, List, AlertCircle, RefreshCw } from 'lucide-react-native';
+import { Search, MapPin, List, AlertCircle, RefreshCw, Sparkles } from 'lucide-react-native';
+import * as Haptics from 'expo-haptics';
+
+const hapticImpact = (style = Haptics.ImpactFeedbackStyle.Light) => {
+  if (Platform.OS !== 'web') Haptics.impactAsync(style);
+};
 import { MotiView } from 'moti';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Screen } from '@/components/primitives/Screen';
@@ -31,6 +45,7 @@ import { RestaurantCard } from '@/components/restaurant/RestaurantCard';
 import { FauxMap } from '@/components/map/FauxMap';
 import { color, radius, fonts, fontSize } from '@/theme/tokens';
 import { discovery } from '@/lib/api';
+import { useReduceMotion } from '@/hooks/useReduceMotion';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -65,8 +80,14 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeVibe, setActiveVibe] = useState<string | null>(null);
   const [searchOverlayOpen, setSearchOverlayOpen] = useState(false);
+  const [chipsStuck, setChipsStuck] = useState(false);
+  // track direction so content slides in from the correct side
+  const feedDirection = useRef<1 | -1>(1); // 1 = going right (→map), -1 = going left (→list)
+  const contentTranslateX = useSharedValue(0);
+  const contentOpacity = useSharedValue(1);
   const scrollY = useSharedValue(0);
   const insets = useSafeAreaInsets();
+  const reduceMotion = useReduceMotion();
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['discovery', 'nearby'],
@@ -104,6 +125,7 @@ export default function Home() {
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
       scrollY.value = event.contentOffset.y;
+      runOnJS(setChipsStuck)(event.contentOffset.y >= CHIPS_STICKY_END);
     },
   });
 
@@ -144,15 +166,41 @@ export default function Home() {
     ),
   );
 
+  // Animated style for the content area — slides + fades on tab switch
+  const contentAnimStyle = useAnimatedStyle(() => ({
+    opacity: contentOpacity.value,
+    transform: [{ translateX: contentTranslateX.value }],
+  }));
+
   const handleToggleVibe = useCallback((vibe: string) => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setActiveVibe((prev) => (prev === vibe ? null : vibe));
   }, []);
 
   const handleToggleView = useCallback((view: FeedView) => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setFeedView(view);
-  }, []);
+    setFeedView((prev) => {
+      if (prev === view) return prev;
+      feedDirection.current = view === 'map' ? 1 : -1;
+
+      if (reduceMotion) {
+        contentOpacity.value = 1;
+        contentTranslateX.value = 0;
+        return view;
+      }
+
+      // All on UI thread — no setTimeout, no JS bridge dependency
+      contentTranslateX.value = withSequence(
+        withTiming(feedDirection.current * -24, { duration: 100, easing: Easing.in(Easing.cubic) }),
+        withTiming(feedDirection.current * 32, { duration: 0 }),
+        withSpring(0, { damping: 18, stiffness: 220, mass: 0.7 }),
+      );
+      contentOpacity.value = withSequence(
+        withTiming(0, { duration: 100, easing: Easing.in(Easing.cubic) }),
+        withDelay(10, withTiming(1, { duration: 180, easing: Easing.out(Easing.cubic) })),
+      );
+
+      return view;
+    });
+  }, [reduceMotion]);
 
   // ── Loading ────────────────────────────────────────────────────────────────
   if (isLoading) {
@@ -174,7 +222,7 @@ export default function Home() {
         </Animated.View>
         <MotiView
           from={{ opacity: 0.35 }} animate={{ opacity: 0.7 }}
-          transition={{ type: 'timing', duration: 900, loop: true, repeatReverse: true }}
+          transition={{ type: 'timing', duration: 650, loop: true, repeatReverse: true }}
           style={styles.skeletonFeatured}
         >
           <View style={styles.skeletonFeaturedImg} />
@@ -186,7 +234,7 @@ export default function Home() {
         <View style={{ flexDirection: 'row', gap: 12, marginTop: 12 }}>
           {[0, 1].map((i) => (
             <MotiView key={i} from={{ opacity: 0.35 }} animate={{ opacity: 0.7 }}
-              transition={{ type: 'timing', duration: 900, loop: true, repeatReverse: true, delay: 150 + i * 120 }}
+              transition={{ type: 'timing', duration: 650, loop: true, repeatReverse: true, delay: 150 + i * 120 }}
               style={[styles.skeletonCard, { flex: 1 }]}
             >
               <View style={styles.skeletonCardImg} />
@@ -200,7 +248,7 @@ export default function Home() {
         <View style={{ flexDirection: 'row', gap: 12, marginTop: 12 }}>
           {[0, 1].map((i) => (
             <MotiView key={i} from={{ opacity: 0.35 }} animate={{ opacity: 0.7 }}
-              transition={{ type: 'timing', duration: 900, loop: true, repeatReverse: true, delay: 390 + i * 120 }}
+              transition={{ type: 'timing', duration: 650, loop: true, repeatReverse: true, delay: 390 + i * 120 }}
               style={[styles.skeletonCard, { flex: 1 }]}
             >
               <View style={styles.skeletonCardImg} />
@@ -262,7 +310,9 @@ export default function Home() {
             </View>
             <Pressable
               onPress={() => setSearchOverlayOpen(true)}
-              hitSlop={8}
+              hitSlop={{ top: 14, bottom: 14, left: 14, right: 14 }}
+              accessibilityLabel="Search restaurants"
+              accessibilityRole="button"
               style={({ pressed }) => [
                 styles.heroSearchBtn,
                 { opacity: pressed ? 0.7 : 1, transform: [{ scale: pressed ? 0.93 : 1 }] },
@@ -301,62 +351,58 @@ export default function Home() {
         </Animated.View>
       </View>
 
-      {/* Map */}
-      {feedView === 'map' && (
-        <Animated.View
-          entering={FadeIn.duration(250)}
-          style={{ height: 420, marginHorizontal: 20, marginBottom: 12, borderRadius: radius.lg, overflow: 'hidden' }}
-        >
-          <FauxMap restaurants={filteredData} />
-        </Animated.View>
-      )}
-
-      {/* Featured card */}
-      {feedView === 'list' && featured && (
-        <Animated.View
-          entering={FadeInDown.delay(300).duration(400).springify().damping(18)}
-          style={{ paddingHorizontal: 20, marginBottom: 8 }}
-        >
-          <View style={styles.sectionLabel}>
-            <Text variant="label" weight="semibold" style={styles.sectionLabelText}>TOP PICK</Text>
-            <View style={styles.sectionLabelLine} />
+      {/* Content area — slides + fades when switching tabs */}
+      <Animated.View style={contentAnimStyle}>
+        {/* Map */}
+        {feedView === 'map' && (
+          <View style={{ height: 420, marginHorizontal: 20, marginBottom: 12, borderRadius: radius.lg, overflow: 'hidden' }}>
+            <FauxMap restaurants={filteredData} />
           </View>
-          <RestaurantCard restaurant={featured} layout="row" parallaxOffset={parallaxOffset} />
-        </Animated.View>
-      )}
+        )}
 
-      {/* Grid section header */}
-      {feedView === 'list' && gridData.length > 0 && (
-        <Animated.View
-          entering={FadeInDown.delay(360).duration(300)}
-          style={[styles.sectionLabel, { paddingHorizontal: 20, marginTop: 16, marginBottom: 4 }]}
-        >
-          <Text variant="label" weight="semibold" style={styles.sectionLabelText}>MORE NEARBY</Text>
-          <View style={styles.sectionLabelLine} />
-          <Text variant="label" tone="muted" style={{ marginLeft: 8 }}>{gridData.length}</Text>
-        </Animated.View>
-      )}
+        {/* Featured card */}
+        {feedView === 'list' && featured && (
+          <View style={{ paddingHorizontal: 20, marginBottom: 8 }}>
+            <View style={styles.sectionLabel}>
+              <Text variant="label" weight="semibold" style={styles.sectionLabelText}>TOP PICK</Text>
+              <View style={styles.sectionLabelLine} />
+            </View>
+            <RestaurantCard restaurant={featured} layout="row" parallaxOffset={parallaxOffset} />
+          </View>
+        )}
 
-      {/* Empty state */}
-      {feedView === 'list' && filteredData.length === 0 && (
-        <Animated.View entering={FadeIn.duration(300)} style={styles.emptyContainer}>
-          <Text variant="h2" serif tone="muted" style={styles.emptyTitle}>
-            {hasFilters ? 'No matches found.' : 'Nothing nearby yet.'}
-          </Text>
-          <View style={styles.emptyRule} />
-          <Text variant="body" tone="muted" style={styles.emptyBody}>
-            {hasFilters ? 'No spots match that filter. Try adjusting your search.' : 'No gems found nearby — try expanding your area.'}
-          </Text>
-          {hasFilters && (
-            <Pressable
-              onPress={() => { LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut); setSearchQuery(''); setActiveVibe(null); }}
-              style={({ pressed }) => [styles.clearButton, { opacity: pressed ? 0.8 : 1 }]}
-            >
-              <Text variant="small" weight="semibold" tone="ink">Clear filters</Text>
-            </Pressable>
-          )}
-        </Animated.View>
-      )}
+        {/* Grid section header */}
+        {feedView === 'list' && gridData.length > 0 && (
+          <View style={[styles.sectionLabel, { paddingHorizontal: 20, marginTop: 16, marginBottom: 4 }]}>
+            <Text variant="label" weight="semibold" style={styles.sectionLabelText}>MORE NEARBY</Text>
+            <View style={styles.sectionLabelLine} />
+            <Text variant="label" tone="muted" style={{ marginLeft: 8 }}>{gridData.length}</Text>
+          </View>
+        )}
+
+        {/* Empty state */}
+        {feedView === 'list' && filteredData.length === 0 && (
+          <View style={styles.emptyContainer}>
+            <Text variant="h2" serif tone="muted" style={styles.emptyTitle}>
+              {hasFilters ? 'No matches found.' : 'Nothing nearby yet.'}
+            </Text>
+            <View style={styles.emptyRule} />
+            <Text variant="body" tone="muted" style={styles.emptyBody}>
+              {hasFilters
+              ? 'No spots match your filters. Try clearing one at a time, or search a cuisine or neighborhood.'
+              : 'No gems found nearby. Try searching a cuisine, dish, or neighborhood name.'}
+            </Text>
+            {hasFilters && (
+              <Pressable
+                onPress={() => { LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut); setSearchQuery(''); setActiveVibe(null); }}
+                style={({ pressed }) => [styles.clearButton, { opacity: pressed ? 0.8 : 1 }]}
+              >
+                <Text variant="small" weight="semibold" tone="ink">Clear filters</Text>
+              </Pressable>
+            )}
+          </View>
+        )}
+      </Animated.View>
     </View>
   );
 
@@ -374,7 +420,7 @@ export default function Home() {
         scrollEventThrottle={16}
         renderItem={({ item, index }: { item: any; index: number }) => (
           <Animated.View
-            entering={FadeInDown.delay(50 * index).duration(360).springify().damping(20)}
+            entering={FadeInDown.delay(Math.min(50 * index, 200)).duration(360).springify().damping(20)}
             style={{ flex: 1 }}
           >
             <RestaurantCard restaurant={item} />
@@ -391,9 +437,9 @@ export default function Home() {
       ─────────────────────────────────────────────────────────────────────── */}
       <Animated.View
         style={[styles.collapsedHeader, { top: insets.top }, collapsedHeaderStyle]}
-        pointerEvents="box-none"
+        pointerEvents={chipsStuck ? 'auto' : 'none'}
       >
-        <View style={styles.collapsedHeaderInner} pointerEvents="auto">
+        <View style={styles.collapsedHeaderInner}>
           <View style={styles.collapsedLeft}>
             <View style={styles.eyebrowDot} />
             <Text variant="h3" serif tone="accent" style={{ marginLeft: 8 }}>
@@ -402,6 +448,8 @@ export default function Home() {
           </View>
           <Pressable
             onPress={() => setSearchOverlayOpen(true)}
+            accessibilityLabel="Search restaurants"
+            accessibilityRole="button"
             style={({ pressed }) => [
               styles.searchIconBtn,
               { opacity: pressed ? 0.7 : 1, transform: [{ scale: pressed ? 0.93 : 1 }] },
@@ -419,19 +467,17 @@ export default function Home() {
       ─────────────────────────────────────────────────────────────────────── */}
       <Animated.View
         style={[styles.stickyChipsBar, { top: insets.top + COLLAPSED_HEADER_H }, stickyChipsStyle]}
-        pointerEvents="box-none"
+        pointerEvents={chipsStuck ? 'auto' : 'none'}
       >
-        <View pointerEvents="auto">
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ gap: 7, paddingHorizontal: 20, paddingVertical: 9 }}
-          >
-            {VIBES.map((vibe) => (
-              <VibeChip key={vibe} vibe={vibe} isActive={activeVibe === vibe} onPress={() => handleToggleVibe(vibe)} />
-            ))}
-          </ScrollView>
-        </View>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ gap: 7, paddingHorizontal: 20, paddingVertical: 9 }}
+        >
+          {VIBES.map((vibe) => (
+            <VibeChip key={vibe} vibe={vibe} isActive={activeVibe === vibe} onPress={() => handleToggleVibe(vibe)} />
+          ))}
+        </ScrollView>
       </Animated.View>
 
       {/* ── Search overlay ───────────────────────────────────────────────────
@@ -451,10 +497,9 @@ export default function Home() {
 }
 
 // ── SearchOverlay ────────────────────────────────────────────────────────────
-// Only mounted when visible=true to guarantee the input never renders (or
-// steals focus) while the overlay is closed. Focus is triggered via ref on
-// the Modal's onShow callback rather than autoFocus, which fires unreliably
-// on Android before the Modal has fully appeared.
+// Rendered as an absolute-positioned View directly inside the Screen tree —
+// no Modal, no web rendering quirks. Only mounted when visible=true so the
+// TextInput never exists in the tree (and can't steal focus) while closed.
 
 function SearchOverlay({
   visible,
@@ -470,26 +515,33 @@ function SearchOverlay({
   insetTop: number;
 }) {
   const inputRef = useRef<TextInput>(null);
+  const backdropOpacity = useSharedValue(visible ? 1 : 0);
+  const backdropAnimStyle = useAnimatedStyle(() => ({ opacity: backdropOpacity.value }));
 
-  if (!visible) return null;
+  React.useEffect(() => {
+    backdropOpacity.value = withTiming(visible ? 1 : 0, {
+      duration: visible ? 180 : 140,
+      easing: visible ? Easing.out(Easing.cubic) : Easing.in(Easing.cubic),
+    });
+  }, [visible]);
 
   return (
-    <Modal
-      visible
-      transparent
-      animationType="fade"
-      statusBarTranslucent
-      onRequestClose={onClose}
-      onShow={() => {
-        // Small delay so the fade animation doesn't fight the keyboard animation
-        setTimeout(() => inputRef.current?.focus(), 80);
-      }}
+    <Animated.View
+      style={[StyleSheet.absoluteFillObject, { zIndex: 99 }]}
+      pointerEvents={visible ? 'auto' : 'none'}
     >
-      <View style={styles.overlayRoot}>
-        {/* Dimmed backdrop — tap to dismiss */}
-        <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
+      {/* Dimmed backdrop — animates in/out */}
+      <Animated.View style={[StyleSheet.absoluteFillObject, styles.overlayBackdrop, backdropAnimStyle]}>
+        <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} accessibilityLabel="Close search" />
+      </Animated.View>
 
-        <View style={[styles.overlayPanel, { paddingTop: insetTop + 12 }]}>
+      {/* Panel — slides down from top */}
+      {visible && (
+        <Animated.View
+          entering={SlideInUp.duration(280).springify().damping(22).stiffness(200)}
+          exiting={SlideOutUp.duration(220).easing(Easing.in(Easing.cubic))}
+          style={[styles.overlayPanel, { paddingTop: insetTop + 12 }]}
+        >
           <View style={styles.overlaySearchRow}>
             <Search size={15} color={color.inkMuted} strokeWidth={2} />
             <TextInput
@@ -498,6 +550,8 @@ function SearchOverlay({
               onChangeText={onChangeQuery}
               placeholder="Search dishes, cuisines, or neighborhoods"
               placeholderTextColor={color.inkSubtle}
+              accessibilityLabel="Search restaurants by dish, cuisine, or neighborhood"
+              autoFocus
               style={styles.overlayInput}
               returnKeyType="search"
               autoCapitalize="none"
@@ -507,56 +561,122 @@ function SearchOverlay({
             <Pressable
               onPress={onClose}
               hitSlop={10}
+              accessibilityLabel="Cancel search"
+              accessibilityRole="button"
               style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1, paddingLeft: 10 })}
             >
               <Text variant="small" weight="semibold" tone="ink">Cancel</Text>
             </Pressable>
           </View>
-        </View>
-      </View>
-    </Modal>
+        </Animated.View>
+      )}
+    </Animated.View>
   );
 }
 
 // ── Sub-components ──────────────────────────────────────────────────────────
 
 function VibeChip({ vibe, isActive, onPress }: { vibe: string; isActive: boolean; onPress: () => void }) {
+  const scale = useSharedValue(1);
+  const reduceMotion = useReduceMotion();
+
+  const animStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => ({
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: isActive ? color.accent : color.bg,
-        borderColor: isActive ? color.accent : color.stone,
-        borderWidth: 1,
-        borderRadius: radius.pill,
-        paddingVertical: 8,
-        paddingHorizontal: 15,
-        opacity: pressed ? 0.82 : 1,
-        transform: [{ scale: pressed ? 0.94 : isActive ? 1.02 : 1 }],
-      })}
+      onPressIn={() => {
+        if (reduceMotion) return;
+        scale.value = withTiming(0.91, { duration: 80 });
+      }}
+      onPressOut={() => {
+        if (reduceMotion) return;
+        scale.value = withSpring(1, { damping: 8, stiffness: 220, mass: 0.6 });
+        hapticImpact();
+      }}
+      accessibilityRole="button"
+      accessibilityLabel={`${vibe} vibe filter${isActive ? ', selected' : ''}`}
+      accessibilityState={{ selected: isActive }}
     >
-      {isActive && (
-        <Text variant="label" tone="surface" style={{ marginRight: 5, lineHeight: 14 }}>✦</Text>
-      )}
-      <Text variant="small" weight="medium" tone={isActive ? 'surface' : 'ink'}>{vibe}</Text>
+      <Animated.View style={animStyle}>
+        <MotiView
+          animate={{
+            backgroundColor: isActive ? color.accent : color.bg,
+            borderColor: isActive ? color.accent : color.stone,
+          }}
+          transition={{ type: 'timing', duration: 160 }}
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            borderWidth: 1,
+            borderRadius: radius.pill,
+            paddingVertical: 10,
+            paddingHorizontal: 15,
+          }}
+        >
+          {isActive && (
+            <Animated.View entering={FadeIn.duration(120)} exiting={FadeOut.duration(80)} style={{ marginRight: 5 }}>
+              <Sparkles size={10} color={color.surface} strokeWidth={2} />
+            </Animated.View>
+          )}
+          <Text variant="small" weight="medium" tone={isActive ? 'surface' : 'ink'}>{vibe}</Text>
+        </MotiView>
+      </Animated.View>
     </Pressable>
   );
 }
 
+const TOGGLE_BTN_W = 80;
+const TOGGLE_BTN_H = 44;
+
 function ViewToggle({ feedView, onToggle }: { feedView: FeedView; onToggle: (v: FeedView) => void }) {
+  const pillX = useSharedValue(feedView === 'list' ? 0 : TOGGLE_BTN_W);
+  // icon scale sharedValues — pop the active icon on switch
+  const listIconScale = useSharedValue(1);
+  const mapIconScale = useSharedValue(1);
+
+  // withTiming belongs at the assignment site, not inside useAnimatedStyle
+  const pillStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: pillX.value }],
+  }));
+
+  const listIconStyle = useAnimatedStyle(() => ({ transform: [{ scale: listIconScale.value }] }));
+  const mapIconStyle = useAnimatedStyle(() => ({ transform: [{ scale: mapIconScale.value }] }));
+
+  const handlePress = (view: FeedView) => {
+    pillX.value = withSpring(view === 'list' ? 0 : TOGGLE_BTN_W, {
+      damping: 16, stiffness: 280, mass: 0.6,
+    });
+    const targetScale = view === 'list' ? listIconScale : mapIconScale;
+    targetScale.value = withSequence(
+      withTiming(0.6, { duration: 80, easing: Easing.in(Easing.cubic) }),
+      withSpring(1, { damping: 7, stiffness: 300, mass: 0.5 }),
+    );
+    hapticImpact();
+    onToggle(view);
+  };
+
+  React.useEffect(() => {
+    pillX.value = withSpring(feedView === 'list' ? 0 : TOGGLE_BTN_W, { damping: 16, stiffness: 280, mass: 0.6 });
+  }, [feedView]);
+
   return (
     <View style={styles.toggleContainer}>
+      {/* Sliding pill background */}
+      <Animated.View style={[styles.togglePill, pillStyle]} />
       <ToggleButton
         active={feedView === 'list'}
-        onPress={() => onToggle('list')}
+        onPress={() => handlePress('list')}
+        iconAnimStyle={listIconStyle}
         icon={<List size={13} color={feedView === 'list' ? color.surface : color.inkMuted} strokeWidth={2} />}
         label="List"
       />
       <ToggleButton
         active={feedView === 'map'}
-        onPress={() => onToggle('map')}
+        onPress={() => handlePress('map')}
+        iconAnimStyle={mapIconStyle}
         icon={<MapPin size={13} color={feedView === 'map' ? color.surface : color.inkMuted} strokeWidth={2} />}
         label="Map"
       />
@@ -565,24 +685,40 @@ function ViewToggle({ feedView, onToggle }: { feedView: FeedView; onToggle: (v: 
 }
 
 function ToggleButton({
-  active, onPress, icon, label,
-}: { active: boolean; onPress: () => void; icon: React.ReactNode; label: string }) {
+  active, onPress, icon, label, iconAnimStyle,
+}: { active: boolean; onPress: () => void; icon: React.ReactNode; label: string; iconAnimStyle?: any }) {
+  const scale = useSharedValue(1);
+  const reduceMotion = useReduceMotion();
+
+  const pressStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => ({
-        flexDirection: 'row', alignItems: 'center',
-        backgroundColor: active ? color.ink : 'transparent',
-        paddingVertical: 7, paddingHorizontal: 16,
-        borderRadius: radius.pill,
-        opacity: pressed ? 0.82 : 1,
-        transform: [{ scale: pressed ? 0.96 : 1 }],
-      })}
+      onPressIn={() => {
+        if (reduceMotion) return;
+        scale.value = withTiming(0.93, { duration: 80 });
+      }}
+      onPressOut={() => {
+        if (reduceMotion) return;
+        scale.value = withSpring(1, { damping: 10, stiffness: 260, mass: 0.5 });
+      }}
+      accessibilityRole="button"
+      accessibilityLabel={`${label} view${active ? ', selected' : ''}`}
+      accessibilityState={{ selected: active }}
+      style={{ width: TOGGLE_BTN_W, height: TOGGLE_BTN_H }}
     >
-      {icon}
-      <Text variant="small" weight="semibold" tone={active ? 'surface' : 'muted'} style={{ marginLeft: 6 }}>
-        {label}
-      </Text>
+      <Animated.View style={[pressStyle, { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderRadius: radius.pill }]}>
+        {/* Icon wrapped in its own animated view for the pop-on-activate effect */}
+        <Animated.View style={iconAnimStyle}>
+          {icon}
+        </Animated.View>
+        <Text variant="small" weight="semibold" tone={active ? 'surface' : 'muted'} style={{ marginLeft: 6 }}>
+          {label}
+        </Text>
+      </Animated.View>
     </Pressable>
   );
 }
@@ -644,6 +780,14 @@ const styles = StyleSheet.create({
   toggleContainer: {
     flexDirection: 'row', backgroundColor: color.stone,
     borderRadius: radius.pill, padding: 3, alignSelf: 'flex-start',
+    position: 'relative',
+  },
+  togglePill: {
+    position: 'absolute',
+    top: 3, left: 3,
+    width: TOGGLE_BTN_W, height: TOGGLE_BTN_H,
+    borderRadius: radius.pill,
+    backgroundColor: color.ink,
   },
 
   // Section labels
@@ -681,11 +825,9 @@ const styles = StyleSheet.create({
   skeletonCardImg: { width: '100%', aspectRatio: 4 / 3, backgroundColor: color.inkSubtle, opacity: 0.12 },
   skeletonLine: { height: 13, backgroundColor: color.inkSubtle, borderRadius: radius.sm, opacity: 0.18 },
 
-  // Search overlay (Modal)
-  overlayRoot: {
-    flex: 1,
+  // Search overlay
+  overlayBackdrop: {
     backgroundColor: 'rgba(28,28,30,0.45)',
-    justifyContent: 'flex-start',
   },
   overlayPanel: {
     backgroundColor: color.bg,
