@@ -11,3 +11,10 @@ android/.gradle
 android/app/build
 .tamagui
 .turbo
+
+# Tool internals
+.agents/
+.claude/
+.impeccable/
+skills-lock.json
+PRODUCT.md
