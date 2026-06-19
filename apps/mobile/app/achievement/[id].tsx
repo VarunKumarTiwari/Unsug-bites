@@ -2,9 +2,7 @@ import React from 'react';
 import { View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Award } from 'lucide-react-native';
-import { Text } from '@/components/primitives/Text';
-import { Button } from '@/components/primitives/Button';
-import { color, radius } from '@/theme/tokens';
+import { Text, Button, color, radius } from '@unsung/ui';
 
 export default function Achievement() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -32,7 +30,7 @@ export default function Achievement() {
           width: 180,
           height: 180,
           borderRadius: 999,
-          backgroundColor: color.olive,
+          backgroundColor: color.success.base,
           alignItems: 'center',
           justifyContent: 'center',
           borderWidth: 6,
@@ -53,22 +51,20 @@ export default function Achievement() {
           borderColor: 'rgba(232,199,112,0.4)',
         }}
       >
-        <Text variant="label" tone="surface" weight="semibold">
+        <Text variant="labelStrong" tone="surface">
           Explorer
         </Text>
       </View>
 
       <Text
         variant="display"
-        serif
         tone="surface"
         style={{ marginTop: 36, textAlign: 'center', letterSpacing: 1 }}
       >
         BADGE UNLOCKED!
       </Text>
       <Text
-        variant="h3"
-        serif
+        variant="h3Serif"
         tone="surface"
         style={{ marginTop: 10, textAlign: 'center', opacity: 0.85 }}
       >

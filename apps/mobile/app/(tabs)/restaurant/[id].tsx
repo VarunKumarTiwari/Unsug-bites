@@ -10,11 +10,9 @@ import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronLeft, Navigation } from 'lucide-react-native';
-import { Text } from '@/components/primitives/Text';
-import { Button } from '@/components/primitives/Button';
+import { Text, Button, color, radius, shadow, space } from '@unsung/ui';
 import { VibeTag } from '@/components/restaurant/VibeTag';
 import { HiddenGemBadge } from '@/components/restaurant/HiddenGemBadge';
-import { color, radius, shadow } from '@/theme/tokens';
 import { discovery } from '@/lib/api';
 
 type Tab = 'legends' | 'unsung';
@@ -34,7 +32,7 @@ export default function RestaurantDetail() {
   if (isLoading || !r) {
     return (
       <View style={{ flex: 1, backgroundColor: color.bg, alignItems: 'center', justifyContent: 'center' }}>
-        <ActivityIndicator color={color.accent} />
+        <ActivityIndicator color={color.primary.base} />
       </View>
     );
   }
@@ -65,7 +63,7 @@ export default function RestaurantDetail() {
               justifyContent: 'center',
             }}
           >
-            <ChevronLeft size={20} color={color.ink} />
+            <ChevronLeft size={20} color={color.text.base} />
           </Pressable>
         </View>
 
@@ -83,7 +81,7 @@ export default function RestaurantDetail() {
           }}
         >
           <HiddenGemBadge score={r.hiddenGemScore} />
-          <Text variant="h1" serif style={{ marginTop: 8 }}>
+          <Text variant="h1" style={{ marginTop: space.sm }}>
             {r.name}
           </Text>
           <Text variant="small" tone="muted" style={{ marginTop: 4 }}>
@@ -108,7 +106,7 @@ export default function RestaurantDetail() {
               flexDirection: 'row',
               marginTop: 28,
               borderBottomWidth: 1,
-              borderBottomColor: color.stone,
+              borderBottomColor: color.border,
             }}
           >
             <TabButton label="The Legends" active={tab === 'legends'} onPress={() => setTab('legends')} />
@@ -136,7 +134,7 @@ export default function RestaurantDetail() {
                     contentFit="cover"
                   />
                   <View style={{ flex: 1 }}>
-                    <Text variant="body" weight="semibold" serif>
+                    <Text variant="bodySerif">
                       {d.name}
                     </Text>
                     {d.description ? (
@@ -145,7 +143,7 @@ export default function RestaurantDetail() {
                       </Text>
                     ) : null}
                     {d.priceCents ? (
-                      <Text variant="small" tone="accent" weight="semibold" style={{ marginTop: 4 }}>
+                      <Text variant="smallStrong" tone="primary" style={{ marginTop: 4 }}>
                         ${(d.priceCents / 100).toFixed(2)}
                       </Text>
                     ) : null}
@@ -176,11 +174,11 @@ function TabButton({
         flex: 1,
         paddingBottom: 12,
         borderBottomWidth: 2,
-        borderBottomColor: active ? color.accent : 'transparent',
+        borderBottomColor: active ? color.primary.base : 'transparent',
         alignItems: 'center',
       }}
     >
-      <Text variant="small" weight="semibold" tone={active ? 'accent' : 'muted'} serif>
+      <Text variant="bodySerif" tone={active ? 'primary' : 'muted'} style={{ fontSize: 13 }}>
         {label}
       </Text>
     </Pressable>

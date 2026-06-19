@@ -1,0 +1,996 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Unsung Bites — Component Showcase</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    /* ─── Tokens mirrored from packages/ui ──────────────────────────── */
+    :root {
+      --bg: #FDFCF7;
+      --surface: #FFFFFF;
+      --surface-muted: #EFECE6;
+      --text-base: #1C1C1E;
+      --text-muted: rgba(28,28,30,0.6);
+      --text-subtle: rgba(28,28,30,0.4);
+      --border: #EFECE6;
+      --primary: #A92D1B;
+      --primary-soft: rgba(169,45,27,0.08);
+      --success: #5A684D;
+      --success-soft: rgba(90,104,77,0.10);
+      --shadow: rgba(28,28,30,0.06);
+
+      --space-xs: 4px;
+      --space-sm: 8px;
+      --space-md: 16px;
+      --space-lg: 24px;
+      --space-xl: 32px;
+      --space-xxl: 48px;
+
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 22px;
+      --radius-xl: 28px;
+      --radius-pill: 999px;
+
+      --shadow-card: 0 8px 24px rgba(28,28,30,0.06);
+      --shadow-pin:  0 0 12px rgba(169,45,27,0.25);
+    }
+
+    /* ─── Page chrome ───────────────────────────────────────────────── */
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text-base);
+      font-family: 'Inter', -apple-system, sans-serif;
+      font-size: 15px;
+      line-height: 22px;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      min-height: 100vh;
+    }
+    nav.toc {
+      position: sticky;
+      top: 0;
+      align-self: start;
+      height: 100vh;
+      overflow-y: auto;
+      padding: var(--space-xl) var(--space-lg);
+      border-right: 1px solid var(--border);
+      background: var(--surface);
+    }
+    nav.toc h1 {
+      font-family: 'Fraunces', serif;
+      font-weight: 600;
+      font-size: 18px;
+      margin: 0 0 var(--space-lg) 0;
+      color: var(--primary);
+    }
+    nav.toc h2 {
+      font-size: 11px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-muted);
+      margin: var(--space-lg) 0 var(--space-sm) 0;
+    }
+    nav.toc h2:first-of-type { margin-top: 0; }
+    nav.toc a {
+      display: block;
+      padding: 4px 0;
+      color: var(--text-base);
+      text-decoration: none;
+      font-size: 13px;
+    }
+    nav.toc a:hover { color: var(--primary); }
+
+    main {
+      padding: var(--space-xxl) var(--space-xxl) 96px;
+      max-width: 980px;
+    }
+    h1.page {
+      font-family: 'Fraunces', serif;
+      font-weight: 600;
+      font-size: 34px;
+      line-height: 40px;
+      margin: 0 0 var(--space-sm) 0;
+    }
+    p.lede {
+      color: var(--text-muted);
+      max-width: 640px;
+      margin: 0 0 var(--space-xl) 0;
+    }
+    section {
+      margin-top: var(--space-xxl);
+      padding-top: var(--space-xl);
+      border-top: 1px solid var(--border);
+    }
+    section:first-of-type { border-top: none; padding-top: 0; }
+    h2.section {
+      font-family: 'Fraunces', serif;
+      font-weight: 500;
+      font-size: 28px;
+      line-height: 34px;
+      margin: 0 0 var(--space-sm) 0;
+    }
+    h3.sub {
+      font-weight: 600;
+      font-size: 18px;
+      margin: var(--space-xl) 0 var(--space-sm) 0;
+    }
+    p.note {
+      color: var(--text-muted);
+      margin: 0 0 var(--space-md) 0;
+      max-width: 640px;
+    }
+
+    /* ─── Example block (preview + code) ────────────────────────────── */
+    .example {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      margin: var(--space-md) 0;
+      background: var(--surface);
+    }
+    .example .preview {
+      padding: var(--space-lg);
+      background: var(--bg);
+    }
+    .example .code {
+      position: relative;
+      background: #1C1C1E;
+      color: #E8E8E8;
+      padding: var(--space-md) var(--space-lg);
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 13px;
+      line-height: 20px;
+      overflow-x: auto;
+    }
+    .example .code pre { margin: 0; white-space: pre; }
+    .example .code .copy {
+      position: absolute;
+      top: var(--space-sm);
+      right: var(--space-sm);
+      background: rgba(255,255,255,0.08);
+      color: #FFF;
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: var(--radius-sm);
+      padding: 4px 10px;
+      font-size: 11px;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+    }
+    .example .code .copy:hover { background: rgba(255,255,255,0.15); }
+    .example .code .copy.copied { background: var(--primary); border-color: var(--primary); }
+
+    /* ─── Syntax tints (subtle) ─────────────────────────────────────── */
+    .code .k { color: #FF8A65; }   /* keyword */
+    .code .t { color: #80CBC4; }   /* tag / type */
+    .code .s { color: #C5E1A5; }   /* string */
+    .code .a { color: #B39DDB; }   /* attr */
+    .code .c { color: #757575; font-style: italic; } /* comment */
+    .code .n { color: #FFD180; }   /* number */
+
+    /* ─── Token displays ────────────────────────────────────────────── */
+    .swatch-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: var(--space-md);
+      margin: var(--space-md) 0;
+    }
+    .swatch {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      background: var(--surface);
+    }
+    .swatch .chip {
+      height: 64px;
+      border-bottom: 1px solid var(--border);
+    }
+    .swatch .meta {
+      padding: 10px var(--space-md);
+    }
+    .swatch .name {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .swatch .val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .scale-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+      padding: var(--space-sm) 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .scale-row:last-child { border-bottom: none; }
+    .scale-row .name {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      width: 110px;
+    }
+    .scale-row .val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-muted);
+      width: 60px;
+    }
+    .scale-row .bar {
+      background: var(--primary);
+      height: 14px;
+      border-radius: 4px;
+    }
+    .radius-row {
+      display: flex; align-items: center; gap: var(--space-md);
+      padding: var(--space-sm) 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .radius-row:last-child { border-bottom: none; }
+    .radius-row .name { font-family: 'JetBrains Mono', monospace; font-size: 12px; width: 110px; }
+    .radius-row .val { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted); width: 60px; }
+    .radius-row .demo {
+      width: 64px; height: 36px;
+      background: var(--surface-muted);
+    }
+
+    .type-row {
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: var(--space-md);
+      padding: var(--space-md) 0;
+      border-bottom: 1px solid var(--border);
+      align-items: baseline;
+    }
+    .type-row:last-child { border-bottom: none; }
+    .type-row .label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .type-row .label .var {
+      color: var(--text-base);
+      font-weight: 500;
+      display: block;
+    }
+
+    .v-display    { font-family: 'Fraunces', serif; font-weight: 600; font-size: 34px; line-height: 40px; }
+    .v-h1         { font-family: 'Fraunces', serif; font-weight: 500; font-size: 28px; line-height: 34px; }
+    .v-h2         { font-family: 'Fraunces', serif; font-weight: 500; font-size: 22px; line-height: 28px; }
+    .v-h3         { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 18px; line-height: 24px; }
+    .v-h3Serif    { font-family: 'Fraunces', serif; font-weight: 500; font-size: 18px; line-height: 24px; }
+    .v-body       { font-family: 'Inter', sans-serif; font-weight: 400; font-size: 15px; line-height: 22px; }
+    .v-bodyMedium { font-family: 'Inter', sans-serif; font-weight: 500; font-size: 15px; line-height: 22px; }
+    .v-bodyStrong { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 15px; line-height: 22px; }
+    .v-bodySerif  { font-family: 'Fraunces', serif; font-weight: 600; font-size: 15px; line-height: 22px; }
+    .v-small      { font-family: 'Inter', sans-serif; font-weight: 400; font-size: 13px; line-height: 18px; }
+    .v-smallMedium{ font-family: 'Inter', sans-serif; font-weight: 500; font-size: 13px; line-height: 18px; }
+    .v-smallStrong{ font-family: 'Inter', sans-serif; font-weight: 600; font-size: 13px; line-height: 18px; }
+    .v-label      { font-family: 'Inter', sans-serif; font-weight: 500; font-size: 11px; line-height: 14px; letter-spacing: 0.6px; text-transform: uppercase; }
+    .v-labelStrong{ font-family: 'Inter', sans-serif; font-weight: 600; font-size: 11px; line-height: 14px; letter-spacing: 0.6px; text-transform: uppercase; }
+
+    /* ─── Primitive demos ───────────────────────────────────────────── */
+    /* Button */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      border-radius: var(--radius-pill);
+      padding: 14px 24px;
+      font-family: 'Inter', sans-serif; font-weight: 600; font-size: 15px;
+      border: 0; cursor: pointer;
+    }
+    .btn-primary   { background: var(--primary); color: var(--surface); }
+    .btn-secondary { background: var(--surface); color: var(--text-base); border: 1px solid var(--border); }
+    .btn-ghost     { background: transparent; color: var(--text-base); }
+
+    /* Card */
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      padding: var(--space-md);
+      box-shadow: var(--shadow-card);
+    }
+    .card-flat {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      padding: var(--space-md);
+      border: 1px solid var(--border);
+    }
+
+    /* Screen */
+    .screen-frame {
+      width: 280px; height: 480px;
+      background: var(--bg);
+      border-radius: var(--radius-xl);
+      border: 8px solid #1C1C1E;
+      padding: var(--space-md);
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* ─── Domain components ─────────────────────────────────────────── */
+    /* VibeTag */
+    .vibe-tag {
+      display: inline-flex; align-items: center;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-pill);
+      padding: 8px 14px;
+      gap: 6px;
+      font-family: 'Inter', sans-serif; font-weight: 500; font-size: 13px;
+    }
+    .vibe-tag.active {
+      background: var(--primary); color: var(--surface);
+      border-color: var(--primary);
+    }
+
+    /* HiddenGemBadge */
+    .hg-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: rgba(255,255,255,0.92);
+      border-radius: var(--radius-pill);
+      padding: 5px 10px;
+      color: var(--primary);
+      font-family: 'Inter', sans-serif; font-weight: 600; font-size: 11px;
+      letter-spacing: 0.6px; text-transform: uppercase;
+    }
+
+    /* Badge (achievement) */
+    .achievement {
+      width: 78px; height: 78px;
+      border-radius: var(--radius-lg);
+      background: var(--surface);
+      border: 1px solid var(--primary-soft);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--primary);
+      font-size: 32px;
+    }
+    .achievement.locked {
+      background: var(--surface-muted);
+      border-color: var(--border);
+      color: var(--text-subtle);
+      opacity: 0.55;
+    }
+    .achievement-wrap { display: inline-flex; flex-direction: column; align-items: center; gap: var(--space-sm); }
+    .achievement-wrap .label {
+      font-family: 'Inter', sans-serif; font-weight: 500; font-size: 11px;
+      letter-spacing: 0.6px; text-transform: uppercase;
+      max-width: 80px; text-align: center;
+    }
+
+    /* StreakFlame */
+    .streak {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: var(--surface);
+      border: 1px solid var(--primary-soft);
+      border-radius: var(--radius-pill);
+      padding: 10px 16px;
+      font-family: 'Inter', sans-serif; font-weight: 600; font-size: 15px;
+    }
+    .streak .flame { color: var(--primary); font-size: 20px; line-height: 1; }
+
+    /* RestaurantCard */
+    .rcard {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-card);
+      width: 280px;
+    }
+    .rcard .img {
+      width: 100%; aspect-ratio: 4/3;
+      background: linear-gradient(135deg, #C2A887 0%, #8B6E4E 100%);
+      position: relative;
+    }
+    .rcard .img .gem { position: absolute; top: 10px; left: 10px; }
+    .rcard .body { padding: 12px; }
+    .rcard .name { font-family: 'Fraunces', serif; font-weight: 500; font-size: 18px; line-height: 24px; }
+    .rcard .meta { color: var(--text-muted); font-size: 13px; margin-top: 2px; }
+    .rcard .rating { font-weight: 600; font-size: 13px; margin-top: 8px; }
+    .rcard .rating .count { color: var(--text-subtle); font-weight: 400; margin-left: 6px; }
+
+    /* Shadow demos */
+    .shadow-demo {
+      width: 140px; height: 80px;
+      background: var(--surface);
+      border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'JetBrains Mono', monospace; font-size: 12px;
+      color: var(--text-muted);
+    }
+    .shadow-card { box-shadow: var(--shadow-card); }
+    .shadow-pin { box-shadow: var(--shadow-pin); }
+
+    /* Motion */
+    .motion-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: var(--space-md) 0;
+    }
+    .motion-table td, .motion-table th {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      font-size: 13px;
+      vertical-align: top;
+    }
+    .motion-table th {
+      font-weight: 500;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-muted);
+    }
+    .motion-table code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      background: var(--surface-muted);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    /* Utility row */
+    .row { display: flex; gap: var(--space-md); flex-wrap: wrap; align-items: center; }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <nav class="toc">
+      <h1>Unsung Bites</h1>
+
+      <h2>Tokens</h2>
+      <a href="#colors">Colors</a>
+      <a href="#spacing">Spacing</a>
+      <a href="#radius">Radius</a>
+      <a href="#typography">Typography</a>
+      <a href="#shadows">Shadows</a>
+      <a href="#motion">Motion</a>
+
+      <h2>Primitives</h2>
+      <a href="#text">Text</a>
+      <a href="#button">Button</a>
+      <a href="#card">Card</a>
+      <a href="#screen">Screen</a>
+
+      <h2>Domain</h2>
+      <a href="#vibe-tag">VibeTag</a>
+      <a href="#hidden-gem">HiddenGemBadge</a>
+      <a href="#badge">Badge</a>
+      <a href="#streak">StreakFlame</a>
+      <a href="#restaurant-card">RestaurantCard</a>
+    </nav>
+
+    <main>
+      <h1 class="page">Component Showcase</h1>
+      <p class="lede">
+        The Unsung Bites design system. Tokens live in <code>packages/ui/src/tokens/</code>; primitives in <code>packages/ui/src/primitives/</code>; domain components in <code>apps/mobile/components/</code>. Everything is imported from <code>@unsung/ui</code> (or local feature paths).
+      </p>
+
+      <!-- ───── COLORS ───── -->
+      <section id="colors">
+        <h2 class="section">Colors</h2>
+        <p class="note">Two-layer system: private <code>palette</code> (raw values) → public <code>color</code> (semantic roles). Components only consume the semantic roles. To re-theme, swap the role map.</p>
+
+        <h3 class="sub">Surfaces</h3>
+        <div class="swatch-grid">
+          <div class="swatch"><div class="chip" style="background:var(--bg)"></div><div class="meta"><div class="name">color.bg</div><div class="val">#FDFCF7</div></div></div>
+          <div class="swatch"><div class="chip" style="background:var(--surface);border-bottom-color:var(--border)"></div><div class="meta"><div class="name">color.surface</div><div class="val">#FFFFFF</div></div></div>
+          <div class="swatch"><div class="chip" style="background:var(--surface-muted)"></div><div class="meta"><div class="name">color.surfaceMuted</div><div class="val">#EFECE6</div></div></div>
+        </div>
+
+        <h3 class="sub">Text</h3>
+        <div class="swatch-grid">
+          <div class="swatch"><div class="chip" style="background:var(--text-base)"></div><div class="meta"><div class="name">color.text.base</div><div class="val">#1C1C1E</div></div></div>
+          <div class="swatch"><div class="chip" style="background:var(--text-muted)"></div><div class="meta"><div class="name">color.text.muted</div><div class="val">rgba(28,28,30,0.6)</div></div></div>
+          <div class="swatch"><div class="chip" style="background:var(--text-subtle)"></div><div class="meta"><div class="name">color.text.subtle</div><div class="val">rgba(28,28,30,0.4)</div></div></div>
+        </div>
+
+        <h3 class="sub">Brand & status</h3>
+        <div class="swatch-grid">
+          <div class="swatch"><div class="chip" style="background:var(--primary)"></div><div class="meta"><div class="name">color.primary.base</div><div class="val">#A92D1B</div></div></div>
+          <div class="swatch"><div class="chip" style="background:var(--primary-soft)"></div><div class="meta"><div class="name">color.primary.soft</div><div class="val">rgba(169,45,27,0.08)</div></div></div>
+          <div class="swatch"><div class="chip" style="background:var(--success)"></div><div class="meta"><div class="name">color.success.base</div><div class="val">#5A684D</div></div></div>
+          <div class="swatch"><div class="chip" style="background:var(--success-soft)"></div><div class="meta"><div class="name">color.success.soft</div><div class="val">rgba(90,104,77,0.10)</div></div></div>
+        </div>
+
+        <h3 class="sub">Border</h3>
+        <div class="swatch-grid">
+          <div class="swatch"><div class="chip" style="background:var(--border)"></div><div class="meta"><div class="name">color.border</div><div class="val">#EFECE6</div></div></div>
+        </div>
+
+        <div class="example">
+          <div class="preview" style="background:var(--surface);">
+            <div style="background:var(--primary);color:var(--surface);padding:14px 24px;border-radius:999px;font-weight:600;display:inline-block;">Use color.primary.base</div>
+          </div>
+          <div class="code">
+            <button class="copy" data-copy="import { color } from '@unsung/ui';
+
+&lt;View style={{ backgroundColor: color.primary.base }}&gt;
+  &lt;Text tone='surface'&gt;Use color.primary.base&lt;/Text&gt;
+&lt;/View&gt;">Copy</button>
+<pre><span class="k">import</span> { color } <span class="k">from</span> <span class="s">'@unsung/ui'</span>;
+
+&lt;<span class="t">View</span> <span class="a">style</span>={{ backgroundColor: color.primary.base }}&gt;
+  &lt;<span class="t">Text</span> <span class="a">tone</span>=<span class="s">'surface'</span>&gt;Use color.primary.base&lt;/<span class="t">Text</span>&gt;
+&lt;/<span class="t">View</span>&gt;</pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- ───── SPACING ───── -->
+      <section id="spacing">
+        <h2 class="section">Spacing</h2>
+        <p class="note">Six-step scale. Use named tokens; don't introduce in-between values without adding a token first.</p>
+
+        <div style="border:1px solid var(--border); border-radius:var(--radius-md); padding: var(--space-md) var(--space-lg); background: var(--surface);">
+          <div class="scale-row"><span class="name">space.xs</span><span class="val">4px</span><div class="bar" style="width:4px"></div></div>
+          <div class="scale-row"><span class="name">space.sm</span><span class="val">8px</span><div class="bar" style="width:8px"></div></div>
+          <div class="scale-row"><span class="name">space.md</span><span class="val">16px</span><div class="bar" style="width:16px"></div></div>
+          <div class="scale-row"><span class="name">space.lg</span><span class="val">24px</span><div class="bar" style="width:24px"></div></div>
+          <div class="scale-row"><span class="name">space.xl</span><span class="val">32px</span><div class="bar" style="width:32px"></div></div>
+          <div class="scale-row"><span class="name">space.xxl</span><span class="val">48px</span><div class="bar" style="width:48px"></div></div>
+        </div>
+
+        <div class="example">
+          <div class="preview">
+            <div style="background:var(--surface); border-radius:var(--radius-md); padding:16px; box-shadow:var(--shadow-card); display:inline-flex; gap:8px;">
+              <div style="background:var(--primary); padding:14px 24px; border-radius:999px; color:white; font-weight:600;">Action A</div>
+              <div style="background:var(--surface-muted); padding:14px 24px; border-radius:999px; font-weight:600;">Action B</div>
+            </div>
+          </div>
+          <div class="code">
+            <button class="copy" data-copy="import { space } from '@unsung/ui';
+
+&lt;View style={{ padding: space.md, gap: space.sm }}&gt; ... &lt;/View&gt;">Copy</button>
+<pre><span class="k">import</span> { space } <span class="k">from</span> <span class="s">'@unsung/ui'</span>;
+
+&lt;<span class="t">View</span> <span class="a">style</span>={{ padding: space.md, gap: space.sm }}&gt; ... &lt;/<span class="t">View</span>&gt;</pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- ───── RADIUS ───── -->
+      <section id="radius">
+        <h2 class="section">Border Radius</h2>
+        <div style="border:1px solid var(--border); border-radius:var(--radius-md); padding: var(--space-md) var(--space-lg); background: var(--surface);">
+          <div class="radius-row"><span class="name">radius.sm</span><span class="val">8</span><div class="demo" style="border-radius:8px"></div></div>
+          <div class="radius-row"><span class="name">radius.md</span><span class="val">14</span><div class="demo" style="border-radius:14px"></div></div>
+          <div class="radius-row"><span class="name">radius.lg</span><span class="val">22</span><div class="demo" style="border-radius:22px"></div></div>
+          <div class="radius-row"><span class="name">radius.xl</span><span class="val">28</span><div class="demo" style="border-radius:28px"></div></div>
+          <div class="radius-row"><span class="name">radius.pill</span><span class="val">999</span><div class="demo" style="border-radius:999px"></div></div>
+        </div>
+      </section>
+
+      <!-- ───── TYPOGRAPHY ───── -->
+      <section id="typography">
+        <h2 class="section">Typography</h2>
+        <p class="note">Bundled variants — each fully encodes family + size + lineHeight. <strong>Never combine variant with a separate weight prop.</strong> Use <code>&lt;Text variant="..." tone="..." /&gt;</code>.</p>
+
+        <div style="border:1px solid var(--border); border-radius:var(--radius-md); padding: var(--space-md) var(--space-lg); background: var(--surface);">
+          <div class="type-row"><div class="label"><span class="var">display</span>Fraunces 600 · 34/40</div><div class="v-display">Hidden Gems Nearby</div></div>
+          <div class="type-row"><div class="label"><span class="var">h1</span>Fraunces 500 · 28/34</div><div class="v-h1">Hidden Gems Nearby</div></div>
+          <div class="type-row"><div class="label"><span class="var">h2</span>Fraunces 500 · 22/28</div><div class="v-h2">Hidden Gems Nearby</div></div>
+          <div class="type-row"><div class="label"><span class="var">h3</span>Inter 600 · 18/24</div><div class="v-h3">Hidden Gems Nearby</div></div>
+          <div class="type-row"><div class="label"><span class="var">h3Serif</span>Fraunces 500 · 18/24</div><div class="v-h3Serif">Hidden Gems Nearby</div></div>
+          <div class="type-row"><div class="label"><span class="var">body</span>Inter 400 · 15/22</div><div class="v-body">The cafes and restaurants locals love but most people miss.</div></div>
+          <div class="type-row"><div class="label"><span class="var">bodyMedium</span>Inter 500 · 15/22</div><div class="v-bodyMedium">The cafes and restaurants locals love but most people miss.</div></div>
+          <div class="type-row"><div class="label"><span class="var">bodyStrong</span>Inter 600 · 15/22</div><div class="v-bodyStrong">The cafes and restaurants locals love but most people miss.</div></div>
+          <div class="type-row"><div class="label"><span class="var">bodySerif</span>Fraunces 600 · 15/22</div><div class="v-bodySerif">Carbonara · Roman classic</div></div>
+          <div class="type-row"><div class="label"><span class="var">small</span>Inter 400 · 13/18</div><div class="v-small">Italian · West Village</div></div>
+          <div class="type-row"><div class="label"><span class="var">smallMedium</span>Inter 500 · 13/18</div><div class="v-smallMedium">Italian · West Village</div></div>
+          <div class="type-row"><div class="label"><span class="var">smallStrong</span>Inter 600 · 13/18</div><div class="v-smallStrong">★ 4.6 (128)</div></div>
+          <div class="type-row"><div class="label"><span class="var">label</span>Inter 500 · 11/14 · uppercase</div><div class="v-label">Nearby</div></div>
+          <div class="type-row"><div class="label"><span class="var">labelStrong</span>Inter 600 · 11/14 · uppercase</div><div class="v-labelStrong">Top Pick</div></div>
+        </div>
+
+        <div class="example">
+          <div class="preview">
+            <div class="v-display" style="color:var(--primary)">Hidden Gems</div>
+            <div class="v-small" style="color:var(--text-muted); margin-top: 4px;">12 spots worth finding</div>
+          </div>
+          <div class="code">
+            <button class="copy" data-copy="import { Text } from '@unsung/ui';
+
+&lt;Text variant='display' tone='primary'&gt;Hidden Gems&lt;/Text&gt;
+&lt;Text variant='small' tone='muted'&gt;12 spots worth finding&lt;/Text&gt;">Copy</button>
+<pre><span class="k">import</span> { Text } <span class="k">from</span> <span class="s">'@unsung/ui'</span>;
+
+&lt;<span class="t">Text</span> <span class="a">variant</span>=<span class="s">'display'</span> <span class="a">tone</span>=<span class="s">'primary'</span>&gt;Hidden Gems&lt;/<span class="t">Text</span>&gt;
+&lt;<span class="t">Text</span> <span class="a">variant</span>=<span class="s">'small'</span> <span class="a">tone</span>=<span class="s">'muted'</span>&gt;12 spots worth finding&lt;/<span class="t">Text</span>&gt;</pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- ───── SHADOWS ───── -->
+      <section id="shadows">
+        <h2 class="section">Shadows</h2>
+        <div class="row" style="margin: var(--space-md) 0;">
+          <div class="shadow-demo shadow-card">shadow.card</div>
+          <div class="shadow-demo shadow-pin">shadow.pin</div>
+        </div>
+        <div class="example">
+          <div class="code">
+            <button class="copy" data-copy="import { shadow } from '@unsung/ui';
+
+&lt;View style={[styles.card, shadow.card]} /&gt;
+// shadow.pin is for accent-glow map pins">Copy</button>
+<pre><span class="k">import</span> { shadow } <span class="k">from</span> <span class="s">'@unsung/ui'</span>;
+
+&lt;<span class="t">View</span> <span class="a">style</span>={[styles.card, shadow.card]} /&gt;
+<span class="c">// shadow.pin is for accent-glow map pins</span></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- ───── MOTION ───── -->
+      <section id="motion">
+        <h2 class="section">Motion</h2>
+        <p class="note">Three named springs cover everything in the home feed today. Never inline <code>{ damping, stiffness, mass }</code>.</p>
+
+        <h3 class="sub">Springs</h3>
+        <table class="motion-table">
+          <tr><th>Token</th><th>Use</th><th>Values</th></tr>
+          <tr><td><code>spring.gentle</code></td><td>Sheets, modals, screen entries</td><td><code>{ damping: 22, stiffness: 200, mass: 1 }</code></td></tr>
+          <tr><td><code>spring.snappy</code></td><td>Toggles, pills, list-item returns</td><td><code>{ damping: 18, stiffness: 260, mass: 0.7 }</code></td></tr>
+          <tr><td><code>spring.bouncy</code></td><td>Press-release on chips and cards</td><td><code>{ damping: 9, stiffness: 260, mass: 0.55 }</code></td></tr>
+        </table>
+
+        <h3 class="sub">Durations</h3>
+        <table class="motion-table">
+          <tr><th>Token</th><th>Use</th><th>Value</th></tr>
+          <tr><td><code>duration.micro</code></td><td>Press compression</td><td>80ms</td></tr>
+          <tr><td><code>duration.fast</code></td><td>Quick fades, color shifts, dismissals</td><td>150ms</td></tr>
+          <tr><td><code>duration.base</code></td><td>Entry fades, slide-ins</td><td>300ms</td></tr>
+          <tr><td><code>duration.slow</code></td><td>Hero / section staggered entries</td><td>400ms</td></tr>
+          <tr><td><code>duration.ambient</code></td><td>Shimmer loops, ambient parallax</td><td>650ms</td></tr>
+        </table>
+
+        <h3 class="sub">Easings</h3>
+        <table class="motion-table">
+          <tr><th>Token</th><th>Use</th></tr>
+          <tr><td><code>easing.out</code></td><td>Entries, fades-in, settles</td></tr>
+          <tr><td><code>easing.in</code></td><td>Exits, compressions, dismissals</td></tr>
+        </table>
+
+        <div class="example">
+          <div class="code">
+            <button class="copy" data-copy="import { spring, duration, easing } from '@unsung/ui';
+
+// Tap-down then settle
+onPressIn:  scale.value = withTiming(0.91, { duration: duration.micro });
+onPressOut: scale.value = withSpring(1, spring.bouncy);
+
+// Sheet entry
+&lt;Animated.View entering={SlideInUp.duration(280).springify().damping(spring.gentle.damping).stiffness(spring.gentle.stiffness)} /&gt;">Copy</button>
+<pre><span class="k">import</span> { spring, duration, easing } <span class="k">from</span> <span class="s">'@unsung/ui'</span>;
+
+<span class="c">// Tap-down then settle</span>
+onPressIn:  scale.value = withTiming(<span class="n">0.91</span>, { duration: duration.micro });
+onPressOut: scale.value = withSpring(<span class="n">1</span>, spring.bouncy);
+
+<span class="c">// Sheet entry</span>
+&lt;<span class="t">Animated.View</span> <span class="a">entering</span>={SlideInUp.duration(<span class="n">280</span>).springify().damping(spring.gentle.damping).stiffness(spring.gentle.stiffness)} /&gt;</pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- ───── TEXT ───── -->
+      <section id="text">
+        <h2 class="section">Text</h2>
+        <p class="note">The only way to render text. Two props: <code>variant</code> (typography) and <code>tone</code> (color).</p>
+
+        <div class="example">
+          <div class="preview">
+            <div class="v-h1">Aldo's Pizzeria</div>
+            <div class="v-small" style="color:var(--text-muted); margin-top:4px;">Italian · West Village</div>
+          </div>
+          <div class="code">
+            <button class="copy" data-copy="&lt;Text variant='h1'&gt;Aldo's Pizzeria&lt;/Text&gt;
+&lt;Text variant='small' tone='muted'&gt;Italian · West Village&lt;/Text&gt;">Copy</button>
+<pre>&lt;<span class="t">Text</span> <span class="a">variant</span>=<span class="s">'h1'</span>&gt;Aldo's Pizzeria&lt;/<span class="t">Text</span>&gt;
+&lt;<span class="t">Text</span> <span class="a">variant</span>=<span class="s">'small'</span> <span class="a">tone</span>=<span class="s">'muted'</span>&gt;Italian · West Village&lt;/<span class="t">Text</span>&gt;</pre>
+          </div>
+        </div>
+
+        <p class="note"><strong>Tone options:</strong> <code>base</code>, <code>muted</code>, <code>subtle</code>, <code>primary</code>, <code>success</code>, <code>surface</code>.</p>
+      </section>
+
+      <!-- ───── BUTTON ───── -->
+      <section id="button">
+        <h2 class="section">Button</h2>
+        <p class="note">Three variants. <code>fullWidth</code> defaults to true. Use <code>leading</code> for icons.</p>
+
+        <div class="example">
+          <div class="preview">
+            <div class="row">
+              <button class="btn btn-primary">Enable Location</button>
+              <button class="btn btn-secondary">Skip for now</button>
+              <button class="btn btn-ghost">Learn more</button>
+            </div>
+          </div>
+          <div class="code">
+            <button class="copy" data-copy="import { Button } from '@unsung/ui';
+
+&lt;Button label='Enable Location' onPress={...} /&gt;
+&lt;Button label='Skip for now' variant='secondary' /&gt;
+&lt;Button label='Learn more' variant='ghost' fullWidth={false} /&gt;">Copy</button>
+<pre><span class="k">import</span> { Button } <span class="k">from</span> <span class="s">'@unsung/ui'</span>;
+
+&lt;<span class="t">Button</span> <span class="a">label</span>=<span class="s">'Enable Location'</span> <span class="a">onPress</span>={...} /&gt;
+&lt;<span class="t">Button</span> <span class="a">label</span>=<span class="s">'Skip for now'</span> <span class="a">variant</span>=<span class="s">'secondary'</span> /&gt;
+&lt;<span class="t">Button</span> <span class="a">label</span>=<span class="s">'Learn more'</span> <span class="a">variant</span>=<span class="s">'ghost'</span> <span class="a">fullWidth</span>={<span class="k">false</span>} /&gt;</pre>
+          </div>
+        </div>
+
+        <h3 class="sub">With leading icon</h3>
+        <div class="example">
+          <div class="preview">
+            <button class="btn btn-primary" style="display:inline-flex;gap:8px;">↗ Directions</button>
+          </div>
+          <div class="code">
+            <button class="copy" data-copy="import { Button } from '@unsung/ui';
+import { Navigation } from 'lucide-react-native';
+
+&lt;Button
+  label='Directions'
+  leading={&lt;Navigation size={16} color={color.surface} /&gt;}
+/&gt;">Copy</button>
+<pre><span class="k">import</span> { Button } <span class="k">from</span> <span class="s">'@unsung/ui'</span>;
+<span class="k">import</span> { Navigation } <span class="k">from</span> <span class="s">'lucide-react-native'</span>;
+
+&lt;<span class="t">Button</span>
+  <span class="a">label</span>=<span class="s">'Directions'</span>
+  <span class="a">leading</span>={&lt;<span class="t">Navigation</span> <span class="a">size</span>={<span class="n">16</span>} <span class="a">color</span>={color.surface} /&gt;}
+/&gt;</pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- ───── CARD ───── -->
+      <section id="card">
+        <h2 class="section">Card</h2>
+        <p class="note">Two variants — <code>lifted</code> (default, with shadow) and <code>flat</code> (border only). <code>padded</code> defaults to true.</p>
+
+        <div class="example">
+          <div class="preview">
+            <div class="row">
+              <div class="card" style="width:200px;">
+                <div class="v-bodyStrong">Lifted card</div>
+                <div class="v-small" style="color:var(--text-muted);margin-top:4px;">With shadow.card</div>
+              </div>
+              <div class="card-flat" style="width:200px;">
+                <div class="v-bodyStrong">Flat card</div>
+                <div class="v-small" style="color:var(--text-muted);margin-top:4px;">Border only</div>
+              </div>
+            </div>
+          </div>
+          <div class="code">
+            <button class="copy" data-copy="import { Card, Text } from '@unsung/ui';
+
+&lt;Card&gt;
+  &lt;Text variant='bodyStrong'&gt;Lifted card&lt;/Text&gt;
+  &lt;Text variant='small' tone='muted'&gt;With shadow.card&lt;/Text&gt;
+&lt;/Card&gt;
+
+&lt;Card variant='flat' padded={false}&gt;...&lt;/Card&gt;">Copy</button>
+<pre><span class="k">import</span> { Card, Text } <span class="k">from</span> <span class="s">'@unsung/ui'</span>;
+
+&lt;<span class="t">Card</span>&gt;
+  &lt;<span class="t">Text</span> <span class="a">variant</span>=<span class="s">'bodyStrong'</span>&gt;Lifted card&lt;/<span class="t">Text</span>&gt;
+  &lt;<span class="t">Text</span> <span class="a">variant</span>=<span class="s">'small'</span> <span class="a">tone</span>=<span class="s">'muted'</span>&gt;With shadow.card&lt;/<span class="t">Text</span>&gt;
+&lt;/<span class="t">Card</span>&gt;
+
+&lt;<span class="t">Card</span> <span class="a">variant</span>=<span class="s">'flat'</span> <span class="a">padded</span>={<span class="k">false</span>}&gt;...&lt;/<span class="t">Card</span>&gt;</pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- ───── SCREEN ───── -->
+      <section id="screen">
+        <h2 class="section">Screen</h2>
+        <p class="note">Top-level wrapper for every screen. Adds safe-area, sets <code>color.bg</code>, and optionally wraps in a <code>ScrollView</code>.</p>
+
+        <div class="example">
+          <div class="preview" style="display:flex;justify-content:center;">
+            <div class="screen-frame">
+              <div class="v-display" style="color:var(--primary)">Hidden Gems</div>
+              <div class="v-small" style="color:var(--text-muted);margin-top:4px;">12 spots worth finding</div>
+              <div class="rcard" style="width:auto;margin-top:16px;">
+                <div class="img"></div>
+                <div class="body">
+                  <div class="name">Aldo's</div>
+                  <div class="meta">Italian · West Village</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="code">
+            <button class="copy" data-copy="import { Screen, Text } from '@unsung/ui';
+
+export default function Home() {
+  return (
+    &lt;Screen scroll&gt;
+      &lt;Text variant='display' tone='primary'&gt;Hidden Gems&lt;/Text&gt;
+      ...
+    &lt;/Screen&gt;
+  );
+}">Copy</button>
+<pre><span class="k">import</span> { Screen, Text } <span class="k">from</span> <span class="s">'@unsung/ui'</span>;
+
+<span class="k">export default function</span> Home() {
+  <span class="k">return</span> (
+    &lt;<span class="t">Screen</span> <span class="a">scroll</span>&gt;
+      &lt;<span class="t">Text</span> <span class="a">variant</span>=<span class="s">'display'</span> <span class="a">tone</span>=<span class="s">'primary'</span>&gt;Hidden Gems&lt;/<span class="t">Text</span>&gt;
+      ...
+    &lt;/<span class="t">Screen</span>&gt;
+  );
+}</pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- ───── VIBE TAG ───── -->
+      <section id="vibe-tag">
+        <h2 class="section">VibeTag</h2>
+        <p class="note">A pill that represents a restaurant vibe. Picks an icon from a fixed map by label.</p>
+
+        <div class="example">
+          <div class="preview">
+            <div class="row">
+              <div class="vibe-tag">☕ Cozy</div>
+              <div class="vibe-tag">🍷 Date Night</div>
+              <div class="vibe-tag">🌙 Late Night</div>
+              <div class="vibe-tag">🧭 Hidden Gem</div>
+            </div>
+          </div>
+          <div class="code">
+            <button class="copy" data-copy="import { VibeTag } from '@/components/restaurant/VibeTag';
+
+{r.vibes.map((v) =&gt; &lt;VibeTag key={v} label={v} /&gt;)}
+
+// Available labels: Cozy, Date Night, Solo Dining, Late Night,
+// Morning, Local Favorite, Hidden Gem, Casual">Copy</button>
+<pre><span class="k">import</span> { VibeTag } <span class="k">from</span> <span class="s">'@/components/restaurant/VibeTag'</span>;
+
+{r.vibes.map((v) =&gt; &lt;<span class="t">VibeTag</span> <span class="a">key</span>={v} <span class="a">label</span>={v} /&gt;)}
+
+<span class="c">// Available labels: Cozy, Date Night, Solo Dining, Late Night,</span>
+<span class="c">// Morning, Local Favorite, Hidden Gem, Casual</span></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- ───── HIDDEN GEM ───── -->
+      <section id="hidden-gem">
+        <h2 class="section">HiddenGemBadge</h2>
+        <p class="note">Renders only when <code>score &gt;= 0.7</code>. The signature "Hidden Gem" pill that appears on featured restaurant cards.</p>
+
+        <div class="example">
+          <div class="preview">
+            <div class="hg-badge">✦ Hidden Gem</div>
+          </div>
+          <div class="code">
+            <button class="copy" data-copy="import { HiddenGemBadge } from '@/components/restaurant/HiddenGemBadge';
+
+&lt;HiddenGemBadge score={r.hiddenGemScore} /&gt;
+// Returns null when score &lt; 0.7">Copy</button>
+<pre><span class="k">import</span> { HiddenGemBadge } <span class="k">from</span> <span class="s">'@/components/restaurant/HiddenGemBadge'</span>;
+
+&lt;<span class="t">HiddenGemBadge</span> <span class="a">score</span>={r.hiddenGemScore} /&gt;
+<span class="c">// Returns null when score &lt; 0.7</span></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- ───── BADGE ───── -->
+      <section id="badge">
+        <h2 class="section">Badge (achievement)</h2>
+        <p class="note">Square achievement tile. Renders an icon + a label. Locked state desaturates and fades.</p>
+
+        <div class="example">
+          <div class="preview">
+            <div class="row">
+              <div class="achievement-wrap">
+                <div class="achievement">🏅</div>
+                <div class="label">Carbonara<br/>Connoisseur</div>
+              </div>
+              <div class="achievement-wrap">
+                <div class="achievement locked">🛡</div>
+                <div class="label" style="color:var(--text-subtle)">Locked</div>
+              </div>
+            </div>
+          </div>
+          <div class="code">
+            <button class="copy" data-copy="import { Badge } from '@/components/gamification/Badge';
+
+&lt;Badge badge={{ id, title, iconKey: 'medal', unlocked: true }} /&gt;
+// iconKey: shield | medal | bowl | compass | sun | leaf | book">Copy</button>
+<pre><span class="k">import</span> { Badge } <span class="k">from</span> <span class="s">'@/components/gamification/Badge'</span>;
+
+&lt;<span class="t">Badge</span> <span class="a">badge</span>={{ id, title, iconKey: <span class="s">'medal'</span>, unlocked: <span class="k">true</span> }} /&gt;
+<span class="c">// iconKey: shield | medal | bowl | compass | sun | leaf | book</span></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- ───── STREAK ───── -->
+      <section id="streak">
+        <h2 class="section">StreakFlame</h2>
+        <p class="note">A pill showing the user's daily streak. Inner flame intensity scales with days (capped at 30).</p>
+
+        <div class="example">
+          <div class="preview">
+            <div class="streak"><span class="flame">▲</span> 14 Day Streak</div>
+          </div>
+          <div class="code">
+            <button class="copy" data-copy="import { StreakFlame } from '@/components/gamification/StreakFlame';
+
+&lt;StreakFlame days={stats.streakDays} /&gt;">Copy</button>
+<pre><span class="k">import</span> { StreakFlame } <span class="k">from</span> <span class="s">'@/components/gamification/StreakFlame'</span>;
+
+&lt;<span class="t">StreakFlame</span> <span class="a">days</span>={stats.streakDays} /&gt;</pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- ───── RESTAURANT CARD ───── -->
+      <section id="restaurant-card">
+        <h2 class="section">RestaurantCard</h2>
+        <p class="note">The primary list-item. Two layouts: <code>grid</code> (default, 4:3) and <code>row</code> (16:9, supports parallax).</p>
+
+        <div class="example">
+          <div class="preview">
+            <div class="rcard">
+              <div class="img"><div class="gem"><div class="hg-badge">✦ Hidden Gem</div></div></div>
+              <div class="body">
+                <div class="name">Aldo's Pizzeria</div>
+                <div class="meta">Italian · West Village</div>
+                <div class="rating">★ 4.6 <span class="count">(128)</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="code">
+            <button class="copy" data-copy="import { RestaurantCard } from '@/components/restaurant/RestaurantCard';
+
+&lt;RestaurantCard restaurant={r} /&gt;
+&lt;RestaurantCard restaurant={r} layout='row' parallaxOffset={offset} /&gt;">Copy</button>
+<pre><span class="k">import</span> { RestaurantCard } <span class="k">from</span> <span class="s">'@/components/restaurant/RestaurantCard'</span>;
+
+&lt;<span class="t">RestaurantCard</span> <span class="a">restaurant</span>={r} /&gt;
+&lt;<span class="t">RestaurantCard</span> <span class="a">restaurant</span>={r} <span class="a">layout</span>=<span class="s">'row'</span> <span class="a">parallaxOffset</span>={offset} /&gt;</pre>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    document.querySelectorAll('.copy').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const text = btn.getAttribute('data-copy');
+        navigator.clipboard.writeText(text).then(() => {
+          const original = btn.textContent;
+          btn.textContent = 'Copied!';
+          btn.classList.add('copied');
+          setTimeout(() => {
+            btn.textContent = original;
+            btn.classList.remove('copied');
+          }, 1200);
+        });
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, useWindowDimensions } from 'react-native';
-import { color } from '@/theme/tokens';
 
 // Static smart-corner brackets — animation arrives once we wire Reanimated to the AI confidence stream.
 export function HolographicBrackets({ size = 240 }: { size?: number }) {

@@ -1,33 +1,30 @@
 import React from 'react';
 import { View, Image } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Screen } from '@/components/primitives/Screen';
-import { Text } from '@/components/primitives/Text';
-import { Button } from '@/components/primitives/Button';
-import { color } from '@/theme/tokens';
+import { Screen, Text, Button, color, space, radius } from '@unsung/ui';
 
 export default function Splash() {
   const router = useRouter();
   return (
     <Screen>
-      <View style={{ flex: 1, justifyContent: 'space-between', paddingVertical: 32 }}>
-        <View style={{ alignItems: 'center', marginTop: 32 }}>
-          <Text variant="display" serif tone="accent">
+      <View style={{ flex: 1, justifyContent: 'space-between', paddingVertical: space.xl }}>
+        <View style={{ alignItems: 'center', marginTop: space.xl }}>
+          <Text variant="display" tone="primary">
             Unsung
           </Text>
-          <Text variant="display" serif tone="accent" style={{ marginTop: -6 }}>
+          <Text variant="display" tone="primary" style={{ marginTop: -6 }}>
             Bites
           </Text>
         </View>
 
-        <View style={{ alignItems: 'center', paddingHorizontal: 24 }}>
-          <Text variant="h1" serif style={{ textAlign: 'center', lineHeight: 34 }}>
+        <View style={{ alignItems: 'center', paddingHorizontal: space.lg }}>
+          <Text variant="h1" style={{ textAlign: 'center' }}>
             Discover the{'\n'}Flavor Next Door.
           </Text>
           <Text
             variant="body"
             tone="muted"
-            style={{ textAlign: 'center', marginTop: 12, lineHeight: 22 }}
+            style={{ textAlign: 'center', marginTop: space.sm + 4 }}
           >
             Find hidden gems and delicious details — the cafes and restaurants locals love but
             most people miss.
@@ -37,20 +34,20 @@ export default function Splash() {
         <View
           style={{
             height: 220,
-            backgroundColor: color.stone,
-            borderRadius: 22,
+            backgroundColor: color.surfaceMuted,
+            borderRadius: radius.lg,
             alignItems: 'center',
             justifyContent: 'center',
-            marginVertical: 24,
+            marginVertical: space.lg,
           }}
         >
           {/* Replace with hand-drawn diner illustration. */}
-          <Text variant="h2" serif tone="muted">
+          <Text variant="h2" tone="muted">
             🏪 Local Diner
           </Text>
         </View>
 
-        <Button label="Enable Location" onPress={() => router.replace('/(tabs)')} />
+        <Button label="Enable Location" onPress={() => router.replace({ pathname: '/(tabs)' })} />
       </View>
     </Screen>
   );

@@ -1,8 +1,7 @@
 import React from 'react';
 import { View } from 'react-native';
 import { Sparkles } from 'lucide-react-native';
-import { color, radius } from '@/theme/tokens';
-import { Text } from '@/components/primitives/Text';
+import { color, radius, Text } from '@unsung/ui';
 
 interface Props {
   score: number; // 0..1
@@ -22,8 +21,8 @@ export function HiddenGemBadge({ score }: Props) {
         alignSelf: 'flex-start',
       }}
     >
-      <Sparkles size={11} color={color.accent} />
-      <Text variant="label" tone="accent" weight="semibold" style={{ marginLeft: 4 }}>
+      <Sparkles size={11} color={color.primary.base} />
+      <Text variant="labelStrong" tone="primary" style={{ marginLeft: 4 }}>
         Hidden Gem
       </Text>
     </View>

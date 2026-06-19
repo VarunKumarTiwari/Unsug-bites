@@ -2,8 +2,7 @@ import React from 'react';
 import { View, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import type { RestaurantSummary } from '@unsung/contracts';
-import { color, radius, shadow } from '@/theme/tokens';
-import { Text } from '@/components/primitives/Text';
+import { color, radius, shadow, Text } from '@unsung/ui';
 
 // Placeholder map — geometry-free monochrome canvas with glowing pins.
 // Real Mapbox/Google integration replaces this component later; the API stays the same.
@@ -33,7 +32,7 @@ export function FauxMap({ restaurants }: Props) {
             right: 0,
             top: `${(i + 1) * 14}%`,
             height: 1,
-            backgroundColor: color.stone,
+            backgroundColor: color.border,
           }}
         />
       ))}
@@ -46,7 +45,7 @@ export function FauxMap({ restaurants }: Props) {
             bottom: 0,
             left: `${(i + 1) * 14}%`,
             width: 1,
-            backgroundColor: color.stone,
+            backgroundColor: color.border,
           }}
         />
       ))}
@@ -73,7 +72,7 @@ export function FauxMap({ restaurants }: Props) {
                   height: isGem ? 18 : 26,
                   borderRadius: 999,
                   borderWidth: 2,
-                  borderColor: color.accent,
+                  borderColor: color.primary.base,
                   backgroundColor: color.surface,
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -86,7 +85,7 @@ export function FauxMap({ restaurants }: Props) {
                   width: 6,
                   height: 6,
                   borderRadius: 999,
-                  backgroundColor: color.accent,
+                  backgroundColor: color.primary.base,
                 }}
               />
             </View>
@@ -104,7 +103,7 @@ export function FauxMap({ restaurants }: Props) {
           paddingVertical: 6,
           borderRadius: radius.pill,
           borderWidth: 1,
-          borderColor: color.stone,
+          borderColor: color.border,
         }}
       >
         <Text variant="label" tone="muted">

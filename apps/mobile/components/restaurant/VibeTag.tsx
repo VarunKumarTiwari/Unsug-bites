@@ -1,8 +1,7 @@
 import React from 'react';
 import { View } from 'react-native';
 import { Coffee, Wine, BookOpen, Moon, Sun, Heart, Compass } from 'lucide-react-native';
-import { color, radius } from '@/theme/tokens';
-import { Text } from '@/components/primitives/Text';
+import { color, radius, space, Text } from '@unsung/ui';
 
 const ICONS: Record<string, React.ComponentType<{ size: number; color: string }>> = {
   Cozy: Coffee,
@@ -30,15 +29,15 @@ export function VibeTag({ label, size = 'md' }: Props) {
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: color.surface,
-        borderColor: color.stone,
+        borderColor: color.border,
         borderWidth: 1,
         borderRadius: radius.pill,
         paddingVertical: padV,
         paddingHorizontal: padH,
       }}
     >
-      <Icon size={size === 'sm' ? 12 : 14} color={color.ink} />
-      <Text variant="small" weight="medium" style={{ marginLeft: 6 }}>
+      <Icon size={size === 'sm' ? 12 : 14} color={color.text.base} />
+      <Text variant="smallMedium" style={{ marginLeft: space.xs + 2 }}>
         {label}
       </Text>
     </View>
