@@ -3,12 +3,9 @@ import { View, Pressable, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Camera as CameraIcon, ChevronLeft, RefreshCcw, X } from 'lucide-react-native';
 import { Image } from 'expo-image';
-import { Text } from '@/components/primitives/Text';
-import { Button } from '@/components/primitives/Button';
-import { Card } from '@/components/primitives/Card';
+import { Text, Button, color, radius, space } from '@unsung/ui';
 import { Vignette } from '@/components/camera/Vignette';
 import { HolographicBrackets } from '@/components/camera/HolographicBrackets';
-import { color, radius } from '@/theme/tokens';
 import { scan, nutrition } from '@/lib/api';
 import type { ScanResult, NutritionFact } from '@unsung/contracts';
 
@@ -95,7 +92,7 @@ export default function Scan() {
               borderColor: 'rgba(255,255,255,0.4)',
             }}
           >
-            <CameraIcon size={28} color={color.ink} />
+            <CameraIcon size={28} color={color.text.base} />
           </Pressable>
         </View>
       )}
@@ -111,7 +108,7 @@ export default function Scan() {
           }}
         >
           <ShimmerLoader />
-          <Text variant="body" tone="surface" weight="medium" style={{ marginTop: 16 }}>
+          <Text variant="bodyMedium" tone="surface" style={{ marginTop: space.md }}>
             Reading the plate…
           </Text>
         </View>
@@ -200,7 +197,7 @@ function ResultSheet({
           width: 40,
           height: 4,
           borderRadius: 2,
-          backgroundColor: color.stone,
+          backgroundColor: color.surfaceMuted,
           alignSelf: 'center',
           marginBottom: 16,
         }}
@@ -208,10 +205,10 @@ function ResultSheet({
       <Text variant="label" tone="muted">
         AI Detected
       </Text>
-      <Text variant="h2" serif style={{ marginTop: 4 }}>
+      <Text variant="h2" style={{ marginTop: 4 }}>
         {result.detectedDish}
       </Text>
-      <Text variant="small" tone="olive" weight="semibold" style={{ marginTop: 4 }}>
+      <Text variant="smallStrong" tone="success" style={{ marginTop: 4 }}>
         ✓ {Math.round(result.confidence * 100)}% confidence
       </Text>
 
@@ -240,17 +237,17 @@ function NutChip({ label, value }: { label: string; value: string }) {
   return (
     <View
       style={{
-        backgroundColor: color.oliveSoft,
+        backgroundColor: color.success.soft,
         borderRadius: radius.md,
         paddingVertical: 10,
         paddingHorizontal: 14,
         flex: 1,
       }}
     >
-      <Text variant="label" tone="olive" weight="semibold">
+      <Text variant="labelStrong" tone="success">
         {label}
       </Text>
-      <Text variant="body" weight="semibold" style={{ marginTop: 2 }}>
+      <Text variant="bodyStrong" style={{ marginTop: 2 }}>
         {value}
       </Text>
     </View>

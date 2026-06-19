@@ -39,11 +39,9 @@ const hapticImpact = (style = Haptics.ImpactFeedbackStyle.Light) => {
 };
 import { MotiView } from 'moti';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Screen } from '@/components/primitives/Screen';
-import { Text } from '@/components/primitives/Text';
+import { Screen, Text, color, radius, text, spring, duration as motionDuration, easing } from '@unsung/ui';
 import { RestaurantCard } from '@/components/restaurant/RestaurantCard';
 import { FauxMap } from '@/components/map/FauxMap';
-import { color, radius, fonts, fontSize } from '@/theme/tokens';
 import { discovery } from '@/lib/api';
 import { useReduceMotion } from '@/hooks/useReduceMotion';
 
@@ -189,13 +187,13 @@ export default function Home() {
 
       // All on UI thread — no setTimeout, no JS bridge dependency
       contentTranslateX.value = withSequence(
-        withTiming(feedDirection.current * -24, { duration: 100, easing: Easing.in(Easing.cubic) }),
+        withTiming(feedDirection.current * -24, { duration: 100, easing: easing.in }),
         withTiming(feedDirection.current * 32, { duration: 0 }),
-        withSpring(0, { damping: 18, stiffness: 220, mass: 0.7 }),
+        withSpring(0, spring.snappy),
       );
       contentOpacity.value = withSequence(
-        withTiming(0, { duration: 100, easing: Easing.in(Easing.cubic) }),
-        withDelay(10, withTiming(1, { duration: 180, easing: Easing.out(Easing.cubic) })),
+        withTiming(0, { duration: 100, easing: easing.in }),
+        withDelay(10, withTiming(1, { duration: 180, easing: easing.out })),
       );
 
       return view;
@@ -209,11 +207,11 @@ export default function Home() {
         <Animated.View entering={FadeInDown.duration(400)} style={{ marginTop: 24, marginBottom: 28 }}>
           <View style={styles.eyebrowRow}>
             <View style={styles.eyebrowDot} />
-            <Text variant="label" weight="semibold" tone="muted" style={styles.eyebrowText}>
+            <Text variant="labelStrong" tone="muted" style={styles.eyebrowText}>
               NEARBY
             </Text>
           </View>
-          <Text variant="display" serif tone="accent" style={{ marginTop: 6, lineHeight: 40 }}>
+          <Text variant="display" tone="primary" style={{ marginTop: 6 }}>
             Hidden Gems
           </Text>
           <Text variant="small" tone="muted" style={{ marginTop: 8 }}>
@@ -270,15 +268,15 @@ export default function Home() {
         <Animated.View entering={FadeInDown.duration(400)} style={{ marginTop: 24 }}>
           <View style={styles.eyebrowRow}>
             <View style={styles.eyebrowDot} />
-            <Text variant="label" weight="semibold" tone="muted" style={styles.eyebrowText}>NEARBY</Text>
+            <Text variant="labelStrong" tone="muted" style={styles.eyebrowText}>NEARBY</Text>
           </View>
-          <Text variant="display" serif tone="accent" style={{ marginTop: 6 }}>Hidden Gems</Text>
+          <Text variant="display" tone="primary" style={{ marginTop: 6 }}>Hidden Gems</Text>
         </Animated.View>
         <Animated.View entering={FadeIn.delay(200).duration(400)} style={styles.errorContainer}>
           <View style={styles.errorIconWrap}>
-            <AlertCircle size={22} color={color.inkMuted} />
+            <AlertCircle size={22} color={color.text.muted} />
           </View>
-          <Text variant="h3" serif tone="muted" style={{ textAlign: 'center', marginTop: 16 }}>
+          <Text variant="h3Serif" tone="muted" style={{ textAlign: 'center', marginTop: 16 }}>
             Couldn't reach nearby spots.
           </Text>
           <Text variant="small" tone="muted" style={{ textAlign: 'center', marginTop: 6, maxWidth: 220 }}>
@@ -289,7 +287,7 @@ export default function Home() {
             style={({ pressed }) => [styles.retryButton, { opacity: pressed ? 0.85 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] }]}
           >
             <RefreshCw size={13} color={color.surface} strokeWidth={2.5} />
-            <Text variant="small" tone="surface" weight="semibold" style={{ marginLeft: 7 }}>Try again</Text>
+            <Text variant="smallStrong" tone="surface" style={{ marginLeft: 7 }}>Try again</Text>
           </Pressable>
         </Animated.View>
       </Screen>
@@ -306,7 +304,7 @@ export default function Home() {
           <Animated.View entering={FadeInDown.duration(300)} style={styles.heroTopRow}>
             <View style={styles.eyebrowRow}>
               <View style={styles.eyebrowDot} />
-              <Text variant="label" weight="semibold" tone="muted" style={styles.eyebrowText}>NEARBY</Text>
+              <Text variant="labelStrong" tone="muted" style={styles.eyebrowText}>NEARBY</Text>
             </View>
             <Pressable
               onPress={() => setSearchOverlayOpen(true)}
@@ -320,13 +318,13 @@ export default function Home() {
             >
               {searchQuery.length > 0
                 ? <View style={styles.heroSearchActive}><Search size={14} color={color.surface} strokeWidth={2.5} /></View>
-                : <Search size={18} color={color.inkMuted} strokeWidth={1.8} />
+                : <Search size={18} color={color.text.muted} strokeWidth={1.8} />
               }
             </Pressable>
           </Animated.View>
 
           <Animated.View entering={FadeInDown.delay(60).duration(350)}>
-            <Text variant="display" serif tone="accent" style={styles.heroTitle}>Hidden Gems</Text>
+            <Text variant="display" tone="primary" style={styles.heroTitle}>Hidden Gems</Text>
           </Animated.View>
           <Animated.View entering={FadeInDown.delay(120).duration(350)} style={styles.subtitleRow}>
             <View style={styles.subtitleRule} />
@@ -364,7 +362,7 @@ export default function Home() {
         {feedView === 'list' && featured && (
           <View style={{ paddingHorizontal: 20, marginBottom: 8 }}>
             <View style={styles.sectionLabel}>
-              <Text variant="label" weight="semibold" style={styles.sectionLabelText}>TOP PICK</Text>
+              <Text variant="labelStrong" style={styles.sectionLabelText}>TOP PICK</Text>
               <View style={styles.sectionLabelLine} />
             </View>
             <RestaurantCard restaurant={featured} layout="row" parallaxOffset={parallaxOffset} />
@@ -374,7 +372,7 @@ export default function Home() {
         {/* Grid section header */}
         {feedView === 'list' && gridData.length > 0 && (
           <View style={[styles.sectionLabel, { paddingHorizontal: 20, marginTop: 16, marginBottom: 4 }]}>
-            <Text variant="label" weight="semibold" style={styles.sectionLabelText}>MORE NEARBY</Text>
+            <Text variant="labelStrong" style={styles.sectionLabelText}>MORE NEARBY</Text>
             <View style={styles.sectionLabelLine} />
             <Text variant="label" tone="muted" style={{ marginLeft: 8 }}>{gridData.length}</Text>
           </View>
@@ -383,7 +381,7 @@ export default function Home() {
         {/* Empty state */}
         {feedView === 'list' && filteredData.length === 0 && (
           <View style={styles.emptyContainer}>
-            <Text variant="h2" serif tone="muted" style={styles.emptyTitle}>
+            <Text variant="h2" tone="muted" style={styles.emptyTitle}>
               {hasFilters ? 'No matches found.' : 'Nothing nearby yet.'}
             </Text>
             <View style={styles.emptyRule} />
@@ -397,7 +395,7 @@ export default function Home() {
                 onPress={() => { LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut); setSearchQuery(''); setActiveVibe(null); }}
                 style={({ pressed }) => [styles.clearButton, { opacity: pressed ? 0.8 : 1 }]}
               >
-                <Text variant="small" weight="semibold" tone="ink">Clear filters</Text>
+                <Text variant="smallStrong" tone="base">Clear filters</Text>
               </Pressable>
             )}
           </View>
@@ -436,13 +434,13 @@ export default function Home() {
            Right: search icon → opens full-screen overlay.
       ─────────────────────────────────────────────────────────────────────── */}
       <Animated.View
-        style={[styles.collapsedHeader, { top: insets.top }, collapsedHeaderStyle]}
+        style={[styles.collapsedHeader, { top: 0 }, collapsedHeaderStyle]}
         pointerEvents={chipsStuck ? 'auto' : 'none'}
       >
         <View style={styles.collapsedHeaderInner}>
           <View style={styles.collapsedLeft}>
             <View style={styles.eyebrowDot} />
-            <Text variant="h3" serif tone="accent" style={{ marginLeft: 8 }}>
+            <Text variant="h3Serif" tone="primary" style={{ marginLeft: 8 }}>
               Hidden Gems
             </Text>
           </View>
@@ -455,7 +453,7 @@ export default function Home() {
               { opacity: pressed ? 0.7 : 1, transform: [{ scale: pressed ? 0.93 : 1 }] },
             ]}
           >
-            <Search size={16} color={color.ink} strokeWidth={2} />
+            <Search size={16} color={color.text.base} strokeWidth={2} />
           </Pressable>
         </View>
       </Animated.View>
@@ -466,7 +464,7 @@ export default function Home() {
            the user has scrolled into the card grid.
       ─────────────────────────────────────────────────────────────────────── */}
       <Animated.View
-        style={[styles.stickyChipsBar, { top: insets.top + COLLAPSED_HEADER_H }, stickyChipsStyle]}
+        style={[styles.stickyChipsBar, { top: COLLAPSED_HEADER_H }, stickyChipsStyle]}
         pointerEvents={chipsStuck ? 'auto' : 'none'}
       >
         <ScrollView
@@ -543,13 +541,13 @@ function SearchOverlay({
           style={[styles.overlayPanel, { paddingTop: insetTop + 12 }]}
         >
           <View style={styles.overlaySearchRow}>
-            <Search size={15} color={color.inkMuted} strokeWidth={2} />
+            <Search size={15} color={color.text.muted} strokeWidth={2} />
             <TextInput
               ref={inputRef}
               value={query}
               onChangeText={onChangeQuery}
               placeholder="Search dishes, cuisines, or neighborhoods"
-              placeholderTextColor={color.inkSubtle}
+              placeholderTextColor={color.text.subtle}
               accessibilityLabel="Search restaurants by dish, cuisine, or neighborhood"
               autoFocus
               style={styles.overlayInput}
@@ -565,7 +563,7 @@ function SearchOverlay({
               accessibilityRole="button"
               style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1, paddingLeft: 10 })}
             >
-              <Text variant="small" weight="semibold" tone="ink">Cancel</Text>
+              <Text variant="smallStrong" tone="base">Cancel</Text>
             </Pressable>
           </View>
         </Animated.View>
@@ -593,7 +591,7 @@ function VibeChip({ vibe, isActive, onPress }: { vibe: string; isActive: boolean
       }}
       onPressOut={() => {
         if (reduceMotion) return;
-        scale.value = withSpring(1, { damping: 8, stiffness: 220, mass: 0.6 });
+        scale.value = withSpring(1, spring.bouncy);
         hapticImpact();
       }}
       accessibilityRole="button"
@@ -603,8 +601,8 @@ function VibeChip({ vibe, isActive, onPress }: { vibe: string; isActive: boolean
       <Animated.View style={animStyle}>
         <MotiView
           animate={{
-            backgroundColor: isActive ? color.accent : color.bg,
-            borderColor: isActive ? color.accent : color.stone,
+            backgroundColor: isActive ? color.primary.base : color.bg,
+            borderColor: isActive ? color.primary.base : color.border,
           }}
           transition={{ type: 'timing', duration: 160 }}
           style={{
@@ -621,7 +619,7 @@ function VibeChip({ vibe, isActive, onPress }: { vibe: string; isActive: boolean
               <Sparkles size={10} color={color.surface} strokeWidth={2} />
             </Animated.View>
           )}
-          <Text variant="small" weight="medium" tone={isActive ? 'surface' : 'ink'}>{vibe}</Text>
+          <Text variant="smallMedium" tone={isActive ? 'surface' : 'base'}>{vibe}</Text>
         </MotiView>
       </Animated.View>
     </Pressable>
@@ -646,20 +644,18 @@ function ViewToggle({ feedView, onToggle }: { feedView: FeedView; onToggle: (v: 
   const mapIconStyle = useAnimatedStyle(() => ({ transform: [{ scale: mapIconScale.value }] }));
 
   const handlePress = (view: FeedView) => {
-    pillX.value = withSpring(view === 'list' ? 0 : TOGGLE_BTN_W, {
-      damping: 16, stiffness: 280, mass: 0.6,
-    });
+    pillX.value = withSpring(view === 'list' ? 0 : TOGGLE_BTN_W, spring.snappy);
     const targetScale = view === 'list' ? listIconScale : mapIconScale;
     targetScale.value = withSequence(
-      withTiming(0.6, { duration: 80, easing: Easing.in(Easing.cubic) }),
-      withSpring(1, { damping: 7, stiffness: 300, mass: 0.5 }),
+      withTiming(0.6, { duration: motionDuration.micro, easing: easing.in }),
+      withSpring(1, spring.bouncy),
     );
     hapticImpact();
     onToggle(view);
   };
 
   React.useEffect(() => {
-    pillX.value = withSpring(feedView === 'list' ? 0 : TOGGLE_BTN_W, { damping: 16, stiffness: 280, mass: 0.6 });
+    pillX.value = withSpring(feedView === 'list' ? 0 : TOGGLE_BTN_W, spring.snappy);
   }, [feedView]);
 
   return (
@@ -670,14 +666,14 @@ function ViewToggle({ feedView, onToggle }: { feedView: FeedView; onToggle: (v: 
         active={feedView === 'list'}
         onPress={() => handlePress('list')}
         iconAnimStyle={listIconStyle}
-        icon={<List size={13} color={feedView === 'list' ? color.surface : color.inkMuted} strokeWidth={2} />}
+        icon={<List size={13} color={feedView === 'list' ? color.surface : color.text.muted} strokeWidth={2} />}
         label="List"
       />
       <ToggleButton
         active={feedView === 'map'}
         onPress={() => handlePress('map')}
         iconAnimStyle={mapIconStyle}
-        icon={<MapPin size={13} color={feedView === 'map' ? color.surface : color.inkMuted} strokeWidth={2} />}
+        icon={<MapPin size={13} color={feedView === 'map' ? color.surface : color.text.muted} strokeWidth={2} />}
         label="Map"
       />
     </View>
@@ -703,7 +699,7 @@ function ToggleButton({
       }}
       onPressOut={() => {
         if (reduceMotion) return;
-        scale.value = withSpring(1, { damping: 10, stiffness: 260, mass: 0.5 });
+        scale.value = withSpring(1, spring.bouncy);
       }}
       accessibilityRole="button"
       accessibilityLabel={`${label} view${active ? ', selected' : ''}`}
@@ -715,7 +711,7 @@ function ToggleButton({
         <Animated.View style={iconAnimStyle}>
           {icon}
         </Animated.View>
-        <Text variant="small" weight="semibold" tone={active ? 'surface' : 'muted'} style={{ marginLeft: 6 }}>
+        <Text variant="smallStrong" tone={active ? 'surface' : 'muted'} style={{ marginLeft: 6 }}>
           {label}
         </Text>
       </Animated.View>
@@ -729,7 +725,7 @@ const styles = StyleSheet.create({
   // Hero
   heroBlock: {
     paddingHorizontal: 20, paddingTop: 28, paddingBottom: 22,
-    borderBottomWidth: 1, borderBottomColor: color.stone, marginBottom: 20,
+    borderBottomWidth: 1, borderBottomColor: color.border, marginBottom: 20,
   },
   // Hero top row — eyebrow left, search icon right
   heroTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 },
@@ -737,15 +733,15 @@ const styles = StyleSheet.create({
   // Filled circle indicator when a search query is active
   heroSearchActive: {
     width: 28, height: 28, borderRadius: radius.pill,
-    backgroundColor: color.accent, alignItems: 'center', justifyContent: 'center',
+    backgroundColor: color.primary.base, alignItems: 'center', justifyContent: 'center',
   },
 
   eyebrowRow: { flexDirection: 'row', alignItems: 'center' },
-  eyebrowDot: { width: 5, height: 5, borderRadius: 99, backgroundColor: color.accent, marginRight: 7 },
+  eyebrowDot: { width: 5, height: 5, borderRadius: 99, backgroundColor: color.primary.base, marginRight: 7 },
   eyebrowText: { letterSpacing: 1.4, fontSize: 10 },
   heroTitle: { marginTop: 4, lineHeight: 42 },
   subtitleRow: { flexDirection: 'row', alignItems: 'center', marginTop: 10, gap: 10 },
-  subtitleRule: { width: 24, height: 1, backgroundColor: color.stone },
+  subtitleRule: { width: 24, height: 1, backgroundColor: color.border },
   subtitleText: { lineHeight: 16 },
 
   // Option A: Collapsed title bar
@@ -753,7 +749,7 @@ const styles = StyleSheet.create({
     position: 'absolute', left: 0, right: 0,
     height: COLLAPSED_HEADER_H,
     backgroundColor: color.bg,
-    borderBottomWidth: 1, borderBottomColor: color.stone,
+    borderBottomWidth: 1, borderBottomColor: color.border,
   },
   collapsedHeaderInner: {
     flex: 1, flexDirection: 'row', alignItems: 'center',
@@ -764,7 +760,7 @@ const styles = StyleSheet.create({
   searchIconBtn: {
     width: 36, height: 36,
     borderRadius: radius.pill,
-    backgroundColor: color.stone,
+    backgroundColor: color.surfaceMuted,
     alignItems: 'center', justifyContent: 'center',
   },
 
@@ -772,13 +768,13 @@ const styles = StyleSheet.create({
   stickyChipsBar: {
     position: 'absolute', left: 0, right: 0,
     backgroundColor: color.bg,
-    borderBottomWidth: 1, borderBottomColor: color.stone,
+    borderBottomWidth: 1, borderBottomColor: color.border,
     shadowColor: '#1C1C1E', shadowOpacity: 0.04, shadowRadius: 8, shadowOffset: { width: 0, height: 3 },
   },
 
   // View toggle
   toggleContainer: {
-    flexDirection: 'row', backgroundColor: color.stone,
+    flexDirection: 'row', backgroundColor: color.surfaceMuted,
     borderRadius: radius.pill, padding: 3, alignSelf: 'flex-start',
     position: 'relative',
   },
@@ -787,43 +783,43 @@ const styles = StyleSheet.create({
     top: 3, left: 3,
     width: TOGGLE_BTN_W, height: TOGGLE_BTN_H,
     borderRadius: radius.pill,
-    backgroundColor: color.ink,
+    backgroundColor: color.text.base,
   },
 
   // Section labels
   sectionLabel: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-  sectionLabelText: { letterSpacing: 1.4, fontSize: 10, color: color.inkMuted },
-  sectionLabelLine: { flex: 1, height: 1, backgroundColor: color.stone, marginLeft: 10 },
+  sectionLabelText: { letterSpacing: 1.4, fontSize: 10, color: color.text.muted },
+  sectionLabelLine: { flex: 1, height: 1, backgroundColor: color.border, marginLeft: 10 },
 
   // Error
   errorContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 64 },
   errorIconWrap: {
     width: 52, height: 52, borderRadius: radius.pill,
-    backgroundColor: color.stone, alignItems: 'center', justifyContent: 'center',
+    backgroundColor: color.surfaceMuted, alignItems: 'center', justifyContent: 'center',
   },
   retryButton: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: color.ink, borderRadius: radius.pill,
+    backgroundColor: color.text.base, borderRadius: radius.pill,
     paddingVertical: 12, paddingHorizontal: 22, marginTop: 24,
   },
 
   // Empty state
   emptyContainer: { alignItems: 'center', paddingTop: 56, paddingHorizontal: 32, paddingBottom: 32 },
   emptyTitle: { textAlign: 'center' },
-  emptyRule: { width: 32, height: 1, backgroundColor: color.stone, marginTop: 14, marginBottom: 14 },
+  emptyRule: { width: 32, height: 1, backgroundColor: color.border, marginTop: 14, marginBottom: 14 },
   emptyBody: { textAlign: 'center', maxWidth: 240, lineHeight: 22 },
   clearButton: {
     marginTop: 20, borderRadius: radius.pill,
     paddingVertical: 10, paddingHorizontal: 20,
-    borderWidth: 1, borderColor: color.stone,
+    borderWidth: 1, borderColor: color.border,
   },
 
   // Skeleton
-  skeletonFeatured: { backgroundColor: color.stone, borderRadius: radius.lg, overflow: 'hidden' },
-  skeletonFeaturedImg: { width: '100%', aspectRatio: 16 / 9, backgroundColor: color.inkSubtle, opacity: 0.12 },
-  skeletonCard: { backgroundColor: color.stone, borderRadius: radius.md, overflow: 'hidden' },
-  skeletonCardImg: { width: '100%', aspectRatio: 4 / 3, backgroundColor: color.inkSubtle, opacity: 0.12 },
-  skeletonLine: { height: 13, backgroundColor: color.inkSubtle, borderRadius: radius.sm, opacity: 0.18 },
+  skeletonFeatured: { backgroundColor: color.surfaceMuted, borderRadius: radius.lg, overflow: 'hidden' },
+  skeletonFeaturedImg: { width: '100%', aspectRatio: 16 / 9, backgroundColor: color.text.subtle, opacity: 0.12 },
+  skeletonCard: { backgroundColor: color.surfaceMuted, borderRadius: radius.md, overflow: 'hidden' },
+  skeletonCardImg: { width: '100%', aspectRatio: 4 / 3, backgroundColor: color.text.subtle, opacity: 0.12 },
+  skeletonLine: { height: 13, backgroundColor: color.text.subtle, borderRadius: radius.sm, opacity: 0.18 },
 
   // Search overlay
   overlayBackdrop: {
@@ -831,7 +827,7 @@ const styles = StyleSheet.create({
   },
   overlayPanel: {
     backgroundColor: color.bg,
-    borderBottomWidth: 1, borderBottomColor: color.stone,
+    borderBottomWidth: 1, borderBottomColor: color.border,
     paddingHorizontal: 20, paddingBottom: 14,
     shadowColor: '#1C1C1E', shadowOpacity: 0.08, shadowRadius: 16, shadowOffset: { width: 0, height: 6 },
   },
@@ -840,11 +836,11 @@ const styles = StyleSheet.create({
     backgroundColor: color.surface,
     borderRadius: radius.pill,
     paddingHorizontal: 16, height: 48,
-    borderWidth: 1, borderColor: color.stone,
+    borderWidth: 1, borderColor: color.border,
   },
   overlayInput: {
     flex: 1, marginLeft: 10,
-    color: color.ink,
-    fontSize: fontSize.body, fontFamily: fonts.body,
+    color: color.text.base,
+    fontSize: text.body.size, fontFamily: text.body.family,
   },
 });

@@ -2,13 +2,10 @@ import React from 'react';
 import { View, ScrollView, ActivityIndicator, Pressable } from 'react-native';
 import { Image } from 'expo-image';
 import { useQuery } from '@tanstack/react-query';
-import { Screen } from '@/components/primitives/Screen';
-import { Text } from '@/components/primitives/Text';
-import { Button } from '@/components/primitives/Button';
+import { Screen, Text, Button, color, radius, shadow, space } from '@unsung/ui';
 import { Badge } from '@/components/gamification/Badge';
 import { StreakFlame } from '@/components/gamification/StreakFlame';
 import { RestaurantCard } from '@/components/restaurant/RestaurantCard';
-import { color, radius, shadow } from '@/theme/tokens';
 import { users, gamification, discovery } from '@/lib/api';
 import { useAuthStore } from '@/lib/store/auth';
 
@@ -33,7 +30,7 @@ export default function Profile() {
   if (isLoading || !stats) {
     return (
       <Screen>
-        <ActivityIndicator color={color.accent} />
+        <ActivityIndicator color={color.primary.base} />
       </Screen>
     );
   }
@@ -48,9 +45,9 @@ export default function Profile() {
         {isLoggedIn && me && (
           <View
             style={{
-              backgroundColor: color.accent,
+              backgroundColor: color.primary.base,
               paddingHorizontal: 20,
-              paddingTop: 24,
+              paddingTop: space.lg,
               paddingBottom: 36,
               borderBottomLeftRadius: radius.xl,
               borderBottomRightRadius: radius.xl,
@@ -66,7 +63,7 @@ export default function Profile() {
                 <View style={{ width: 64, height: 64, borderRadius: 999, backgroundColor: color.surface }} />
               )}
               <View style={{ flex: 1 }}>
-                <Text variant="h2" serif tone="surface">
+                <Text variant="h2" tone="surface">
                   {me.displayName}
                 </Text>
                 <Text variant="small" tone="surface" style={{ opacity: 0.85, marginTop: 2 }}>
@@ -103,14 +100,14 @@ export default function Profile() {
             style={{
               backgroundColor: color.surface,
               borderRadius: radius.lg,
-              padding: 16,
-              marginTop: 8,
-              gap: 16,
+              padding: space.md,
+              marginTop: space.sm,
+              gap: space.md,
               ...shadow.card,
             }}
           >
             {rows.map((row, idx) => (
-              <View key={idx} style={{ flexDirection: 'row', gap: 8 }}>
+              <View key={idx} style={{ flexDirection: 'row', gap: space.sm }}>
                 {row.map((b) => (
                   <Badge key={b.id} badge={b} />
                 ))}
@@ -141,15 +138,15 @@ export default function Profile() {
           <Pressable
             onPress={toggle}
             style={{
-              marginTop: 32,
+              marginTop: space.xl,
               alignSelf: 'center',
-              backgroundColor: color.stone,
-              paddingVertical: 8,
-              paddingHorizontal: 16,
+              backgroundColor: color.surfaceMuted,
+              paddingVertical: space.sm,
+              paddingHorizontal: space.md,
               borderRadius: radius.pill,
             }}
           >
-            <Text variant="small" weight="medium" tone="muted">
+            <Text variant="smallMedium" tone="muted">
               DEV: {isLoggedIn ? 'Log out' : 'Log in (mock)'}
             </Text>
           </Pressable>

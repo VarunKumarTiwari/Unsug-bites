@@ -1,36 +1,110 @@
 # Unsung Bites — Monorepo
 
-Cross-platform (iOS + Android + Web) restaurant discovery app with in-venue AI dish scanning.
+Cross-platform restaurant discovery app with in-venue AI dish scanning. **One Expo codebase ships to iOS, Android, and Web.**
 
 ## Layout
 
 ```
 apps/
-└── mobile/              # Expo (React Native + Web) — the only frontend (SPA)
-
-services/                # Each folder = one microservice. Independently deployable later.
-├── discovery/           # Nearby restaurants, search, hidden-gem ranking
-├── scan/                # Photo upload + AI dish detection
-├── nutrition/           # Ingredient + macro lookup
-├── reviews/             # User dish reviews + ratings
-├── gamification/        # Badges, streaks, achievements
-├── users/               # Profile, auth, preferences
-└── recommendations/     # Personalized feed (data flywheel target)
+└── mobile/                  # Expo (React Native + Web) — the only frontend
 
 packages/
-└── contracts/           # Shared TypeScript types — the ONLY thing services + app share
+├── ui/                      # Design system: tokens + primitives. Imported as @unsung/ui.
+└── contracts/               # Shared TypeScript types between app + services
+
+services/                    # Each folder = one microservice (mock JSON today, real later)
+├── discovery/               # Nearby restaurants, search, hidden-gem ranking
+├── scan/                    # Photo upload + AI dish detection
+├── nutrition/               # Ingredient + macro lookup
+├── reviews/                 # User dish reviews + ratings
+├── gamification/            # Badges, streaks, achievements
+├── users/                   # Profile, auth, preferences
+└── recommendations/         # Personalized feed
+
+standards/                   # Project-wide conventions
+docs/
+└── showcase.html            # Open in a browser — visual reference for every component
 ```
 
-## Loose Coupling Rules
+## Setup (once)
 
-1. **Services know nothing about each other.** They share zero code. They share only types in `packages/contracts/`.
-2. **The mobile app talks to services through a thin client adapter** (`apps/mobile/lib/api/`). Today every adapter reads from local mock JSON. To go live, swap the adapter body — no screens change.
-3. **Each service has its own `mock/` folder.** This is the contract example: real responses must match the mocks' shapes.
-4. **Each service has a `README.md` and `openapi.yaml`** describing its endpoints. No code yet — the contract IS the deliverable for now.
+Requires Node 18+, npm, and (for native) Xcode + Android Studio.
 
-## Current Phase
-
-**Frontend SPA only**, fully driven by mock JSON. No real backend, no real maps integration, no real AI.
+```bash
+npm install --legacy-peer-deps
 ```
 
-# Unsug-bites
+The `--legacy-peer-deps` flag is needed because of a peer-dep conflict in `react-native-worklets` — leaving it off will fail with ERESOLVE.
+
+## Running the app
+
+All commands run from the **repo root**.
+
+### iOS
+
+```bash
+npm run mobile:ios
+```
+
+Builds the native iOS app, launches the iOS Simulator, and starts the Metro bundler. First build takes ~3-5 minutes (native compilation); subsequent runs are fast. Requires Xcode installed and at least one iOS Simulator configured.
+
+To run on a physical device: open `apps/mobile/ios/UnsungBites.xcworkspace` in Xcode, select your device, and hit Run.
+
+### Android
+
+```bash
+npm run mobile:android
+```
+
+Builds the native Android app, launches an emulator (or attached device), and starts Metro. Requires Android Studio with at least one AVD set up, or a physical device with USB debugging enabled.
+
+If the emulator doesn't auto-launch, start one from Android Studio's Device Manager first, then re-run the command.
+
+### Web
+
+```bash
+npm run mobile:web
+```
+
+Starts Metro in web mode and opens `http://localhost:8081` in your default browser. No native toolchain required — this is the fastest way to iterate on UI changes.
+
+Same React Native code, rendered through `react-native-web`. Most components work identically; native-only APIs (haptics, camera) become no-ops on web.
+
+### Dev menu (Metro)
+
+If you prefer to start the bundler first and pick a target from the menu:
+
+```bash
+npm run mobile           # equivalent to: expo start
+```
+
+Then press `i` for iOS, `a` for Android, or `w` for Web in the terminal.
+
+## Development reference
+
+**While building UI**, keep `docs/showcase.html` open in a browser tab — it shows every token, primitive, and domain component with rendered previews and copyable code snippets.
+
+```bash
+open docs/showcase.html
+```
+
+## Standards
+
+| File | What's in it |
+|---|---|
+| `standards/structure.md` | Where files go, what `@unsung/ui` exports, import rules |
+| `standards/tokens.md` | Every color, spacing, radius, typography variant — names + values |
+| `standards/animations.md` | Spring presets, motion tokens, scroll-driven patterns |
+| `standards/libraries.md` | Pinned dependencies + what each is for |
+
+## Architecture rules
+
+1. **Tokens & primitives live in `packages/ui`.** Add once → all targets get it. Always import via `@unsung/ui`, never deep paths.
+2. **No hardcoded design values in app code.** Colors, spacing, radii, fonts, springs — all come from `@unsung/ui`.
+3. **Services know nothing about each other.** They share zero code. They share only types in `packages/contracts/`.
+4. **Screens talk to services via `apps/mobile/lib/api/`.** Today every adapter reads mock JSON. To go live, swap the adapter body — no screens change.
+5. **Each service has its own `mock/` folder + `README.md` + `openapi.yaml`.** The contract is the deliverable for now; code comes later.
+
+## Current phase
+
+Frontend SPA only, fully driven by mock JSON. No real backend, no real maps, no real AI.

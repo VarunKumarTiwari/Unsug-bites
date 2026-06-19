@@ -6,6 +6,9 @@ dist
 *.log
 .env
 .env.local
+# Native build outputs — regenerable via `npx expo prebuild`
+apps/*/ios/
+apps/*/android/
 ios/Pods
 android/.gradle
 android/app/build

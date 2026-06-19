@@ -1,6 +1,9 @@
 import React from 'react';
 import { View, ViewProps } from 'react-native';
-import { color, radius, shadow } from '@/theme/tokens';
+import { color } from '../tokens/color';
+import { radius } from '../tokens/radius';
+import { space } from '../tokens/space';
+import { shadow } from '../tokens/shadow';
 
 interface Props extends ViewProps {
   variant?: 'flat' | 'lifted';
@@ -14,9 +17,9 @@ export function Card({ variant = 'lifted', padded = true, style, ...rest }: Prop
         {
           backgroundColor: color.surface,
           borderRadius: radius.lg,
-          padding: padded ? 16 : 0,
+          padding: padded ? space.md : 0,
           borderWidth: variant === 'flat' ? 1 : 0,
-          borderColor: color.stone,
+          borderColor: color.border,
         },
         variant === 'lifted' && shadow.card,
         style,

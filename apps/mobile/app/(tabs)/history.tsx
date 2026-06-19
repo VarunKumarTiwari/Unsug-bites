@@ -3,9 +3,7 @@ import { View, ScrollView, ActivityIndicator } from 'react-native';
 import { Image } from 'expo-image';
 import { useQuery } from '@tanstack/react-query';
 import { Calendar, Flame, Beef } from 'lucide-react-native';
-import { Screen } from '@/components/primitives/Screen';
-import { Text } from '@/components/primitives/Text';
-import { color, radius, shadow } from '@/theme/tokens';
+import { Screen, Text, color, radius, shadow, space } from '@unsung/ui';
 import { reviews, gamification } from '@/lib/api';
 
 const SAMPLE_PHOTO = 'https://images.unsplash.com/photo-1612874742237-6526221588e3?w=600';
@@ -22,32 +20,32 @@ export default function History() {
 
   return (
     <Screen>
-      <Text variant="display" serif tone="accent">
+      <Text variant="display" tone="primary">
         Food History
       </Text>
-      <Text variant="small" tone="muted" style={{ marginBottom: 16 }}>
+      <Text variant="small" tone="muted" style={{ marginBottom: space.md }}>
         {stats ? `Dishes logged: ${stats.totalDishesLogged} · Streak: ${stats.streakDays} days` : ' '}
       </Text>
 
       {isLoading ? (
-        <ActivityIndicator color={color.accent} />
+        <ActivityIndicator color={color.primary.base} />
       ) : (
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: space.xl + space.sm }}>
           <View style={{ flexDirection: 'row', flex: 1 }}>
             {/* Vertical timeline axis */}
             <View
               style={{
                 width: 1,
-                backgroundColor: color.stone,
-                marginLeft: 24,
-                marginRight: 24,
+                backgroundColor: color.border,
+                marginLeft: space.lg,
+                marginRight: space.lg,
               }}
             />
 
-            <View style={{ flex: 1, gap: 20 }}>
+            <View style={{ flex: 1, gap: space.lg - 4 }}>
               {(reviewList ?? []).map((rev) => (
                 <View key={rev.id}>
-                  <Text variant="label" tone="muted" style={{ marginBottom: 8 }}>
+                  <Text variant="label" tone="muted" style={{ marginBottom: space.sm }}>
                     {new Date(rev.createdAt).toLocaleDateString(undefined, {
                       month: 'short',
                       day: 'numeric',
@@ -57,7 +55,7 @@ export default function History() {
                   <View
                     style={{
                       backgroundColor: color.surface,
-                      padding: 12,
+                      padding: space.sm + 4,
                       borderRadius: radius.md,
                       transform: [{ rotate: '-1.2deg' }],
                       ...shadow.card,
@@ -69,7 +67,7 @@ export default function History() {
                       contentFit="cover"
                     />
                     <View style={{ marginTop: 10 }}>
-                      <Text variant="body" weight="semibold" serif>
+                      <Text variant="bodySerif">
                         {rev.dishName}
                       </Text>
                       {rev.note ? (
@@ -77,9 +75,9 @@ export default function History() {
                           “{rev.note}”
                         </Text>
                       ) : null}
-                      <View style={{ flexDirection: 'row', gap: 12, marginTop: 10 }}>
-                        <Glance icon={<Flame size={12} color={color.olive} />} label="Calories" />
-                        <Glance icon={<Beef size={12} color={color.olive} />} label="Protein" />
+                      <View style={{ flexDirection: 'row', gap: space.sm + 4, marginTop: 10 }}>
+                        <Glance icon={<Flame size={12} color={color.success.base} />} label="Calories" />
+                        <Glance icon={<Beef size={12} color={color.success.base} />} label="Protein" />
                       </View>
                     </View>
                   </View>
@@ -99,14 +97,14 @@ function Glance({ icon, label }: { icon: React.ReactNode; label: string }) {
       style={{
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: color.oliveSoft,
-        paddingHorizontal: 8,
+        backgroundColor: color.success.soft,
+        paddingHorizontal: space.sm,
         paddingVertical: 4,
-        borderRadius: 999,
+        borderRadius: radius.pill,
       }}
     >
       {icon}
-      <Text variant="label" tone="olive" weight="semibold" style={{ marginLeft: 4 }}>
+      <Text variant="labelStrong" tone="success" style={{ marginLeft: 4 }}>
         {label}
       </Text>
     </View>

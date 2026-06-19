@@ -55,7 +55,7 @@ Core dependencies for the Unsung Bites mobile app. Pinned to Expo SDK 51.
 
 ## Styling
 
-No CSS framework. All styles come from `theme/tokens.ts` via `StyleSheet.create`. See `standards/tokens.md`.
+No CSS framework. All styles come from `@unsung/ui` (the workspace package at `packages/ui`) via `StyleSheet.create`. See `standards/tokens.md`.
 
 ## Removed
 

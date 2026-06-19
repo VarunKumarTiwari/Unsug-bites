@@ -1,6 +1,8 @@
 import React from 'react';
 import { Pressable, PressableProps, View, ActivityIndicator } from 'react-native';
-import { color, radius } from '@/theme/tokens';
+import { color } from '../tokens/color';
+import { radius } from '../tokens/radius';
+import { space } from '../tokens/space';
 import { Text } from './Text';
 
 type Variant = 'primary' | 'secondary' | 'ghost';
@@ -24,9 +26,9 @@ export function Button({
   ...rest
 }: Props) {
   const bg =
-    variant === 'primary' ? color.accent : variant === 'secondary' ? color.surface : 'transparent';
-  const border = variant === 'secondary' ? color.stone : 'transparent';
-  const tone = variant === 'primary' ? 'surface' : 'ink';
+    variant === 'primary' ? color.primary.base : variant === 'secondary' ? color.surface : 'transparent';
+  const border = variant === 'secondary' ? color.border : 'transparent';
+  const tone = variant === 'primary' ? 'surface' : 'base';
 
   return (
     <Pressable
@@ -38,7 +40,7 @@ export function Button({
           borderWidth: variant === 'secondary' ? 1 : 0,
           borderColor: border,
           paddingVertical: 14,
-          paddingHorizontal: 24,
+          paddingHorizontal: space.lg,
           alignItems: 'center',
           justifyContent: 'center',
           flexDirection: 'row',
@@ -50,11 +52,11 @@ export function Button({
       ]}
       {...rest}
     >
-      {leading ? <View style={{ marginRight: 8 }}>{leading}</View> : null}
+      {leading ? <View style={{ marginRight: space.sm }}>{leading}</View> : null}
       {loading ? (
-        <ActivityIndicator color={variant === 'primary' ? color.surface : color.ink} />
+        <ActivityIndicator color={variant === 'primary' ? color.surface : color.text.base} />
       ) : (
-        <Text variant="body" tone={tone} weight="semibold">
+        <Text variant="bodyStrong" tone={tone}>
           {label}
         </Text>
       )}

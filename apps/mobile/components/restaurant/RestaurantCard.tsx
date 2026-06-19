@@ -4,8 +4,7 @@ import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import Animated, { useAnimatedStyle, SharedValue } from 'react-native-reanimated';
 import type { RestaurantSummary } from '@unsung/contracts';
-import { color, radius, shadow } from '@/theme/tokens';
-import { Text } from '@/components/primitives/Text';
+import { color, radius, shadow, space, Text } from '@unsung/ui';
 import { HiddenGemBadge } from './HiddenGemBadge';
 
 // expo-image isn't animatable by default — wrap it so Reanimated can drive transform
@@ -77,18 +76,18 @@ export function RestaurantCard({ restaurant, layout = 'grid', parallaxOffset }: 
         </View>
       </View>
 
-      <View style={{ padding: 12 }}>
-        <Text variant="h3" serif numberOfLines={1}>
+      <View style={{ padding: space.sm + 4 }}>
+        <Text variant="h3Serif" numberOfLines={1}>
           {r.name}
         </Text>
         <Text variant="small" tone="muted" style={{ marginTop: 2 }} numberOfLines={1}>
           {r.cuisine} · {r.neighborhood}
         </Text>
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
-          <Text variant="small" weight="semibold">
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: space.sm }}>
+          <Text variant="smallStrong">
             ★ {r.rating.toFixed(1)}
           </Text>
-          <Text variant="small" tone="subtle" style={{ marginLeft: 6 }}>
+          <Text variant="small" tone="subtle" style={{ marginLeft: space.xs + 2 }}>
             ({r.reviewCount})
           </Text>
         </View>
