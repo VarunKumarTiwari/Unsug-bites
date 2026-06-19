@@ -1,0 +1,58 @@
+version: "3.8"
+
+services:
+  discovery:
+    image: stoplight/prism:4
+    command: mock /spec/openapi.yaml -h 0.0.0.0 -p 4010
+    volumes:
+      - ./services/discovery:/spec:ro
+    ports:
+      - "4010:4010"
+
+  gamification:
+    image: stoplight/prism:4
+    command: mock /spec/openapi.yaml -h 0.0.0.0 -p 4010
+    volumes:
+      - ./services/gamification:/spec:ro
+    ports:
+      - "4011:4010"
+
+  nutrition:
+    image: stoplight/prism:4
+    command: mock /spec/openapi.yaml -h 0.0.0.0 -p 4010
+    volumes:
+      - ./services/nutrition:/spec:ro
+    ports:
+      - "4012:4010"
+
+  recommendations:
+    image: stoplight/prism:4
+    command: mock /spec/openapi.yaml -h 0.0.0.0 -p 4010
+    volumes:
+      - ./services/recommendations:/spec:ro
+    ports:
+      - "4013:4010"
+
+  reviews:
+    image: stoplight/prism:4
+    command: mock /spec/openapi.yaml -h 0.0.0.0 -p 4010
+    volumes:
+      - ./services/reviews:/spec:ro
+    ports:
+      - "4014:4010"
+
+  scan:
+    image: stoplight/prism:4
+    command: mock /spec/openapi.yaml -h 0.0.0.0 -p 4010
+    volumes:
+      - ./services/scan:/spec:ro
+    ports:
+      - "4015:4010"
+
+  users:
+    image: stoplight/prism:4
+    command: mock /spec/openapi.yaml -h 0.0.0.0 -p 4010
+    volumes:
+      - ./services/users:/spec:ro
+    ports:
+      - "4016:4010"

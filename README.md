@@ -105,6 +105,32 @@ open docs/showcase.html
 4. **Screens talk to services via `apps/mobile/lib/api/`.** Today every adapter reads mock JSON. To go live, swap the adapter body — no screens change.
 5. **Each service has its own `mock/` folder + `README.md` + `openapi.yaml`.** The contract is the deliverable for now; code comes later.
 
+## Running backend services (Docker)
+
+All 7 backend services can be started with a single command. Each runs as an independent container serving mock API responses from its OpenAPI spec.
+
+**Requires:** [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running.
+
+```bash
+docker compose up
+```
+
+This starts all services on separate ports:
+
+| Service         | URL                        |
+|-----------------|----------------------------|
+| Discovery       | http://localhost:4010      |
+| Gamification    | http://localhost:4011      |
+| Nutrition       | http://localhost:4012      |
+| Recommendations | http://localhost:4013      |
+| Reviews         | http://localhost:4014      |
+| Scan            | http://localhost:4015      |
+| Users           | http://localhost:4016      |
+
+To run a single service: `docker compose up discovery`
+
+To stop: `docker compose down`
+
 ## Current phase
 
 Frontend SPA only, fully driven by mock JSON. No real backend, no real maps, no real AI.
