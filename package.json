@@ -11,8 +11,5 @@
     "mobile:web": "npm --workspace @unsung/mobile run web",
     "mobile:ios": "npm --workspace @unsung/mobile run ios",
     "mobile:android": "npm --workspace @unsung/mobile run android"
-  },
-  "dependencies": {
-    "react-native-worklets": "^0.9.2"
   }
 }
