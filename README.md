@@ -31,10 +31,10 @@ docs/
 Requires Node 18+, npm, and (for native) Xcode + Android Studio.
 
 ```bash
-npm install --legacy-peer-deps
+npm install
 ```
 
-The `--legacy-peer-deps` flag is needed because of a peer-dep conflict in `react-native-worklets` — leaving it off will fail with ERESOLVE.
+An `.npmrc` at the repo root sets `legacy-peer-deps=true` automatically — no extra flags needed.
 
 ## Running the app
 
@@ -58,7 +58,15 @@ npm run mobile:android
 
 Builds the native Android app, launches an emulator (or attached device), and starts Metro. Requires Android Studio with at least one AVD set up, or a physical device with USB debugging enabled.
 
-If the emulator doesn't auto-launch, start one from Android Studio's Device Manager first, then re-run the command.
+**Java requirement:** Gradle requires Java 17. The project's `gradle.properties` is pre-configured to use Corretto 17 at `/Library/Java/JavaVirtualMachines/amazon-corretto-17.jdk`. If your Java 17 is elsewhere, update `org.gradle.java.home` in `apps/mobile/android/gradle.properties`.
+
+If the emulator doesn't auto-launch, start one first:
+
+```bash
+emulator -list-avds          # see available virtual devices
+emulator -avd <name>         # launch one
+npm run mobile:android       # then build + install
+```
 
 ### Web
 
