@@ -10,6 +10,8 @@
     "mobile": "npm --workspace @unsung/mobile run start",
     "mobile:web": "npm --workspace @unsung/mobile run web",
     "mobile:ios": "npm --workspace @unsung/mobile run ios",
-    "mobile:android": "npm --workspace @unsung/mobile run android"
+    "mobile:android": "npm --workspace @unsung/mobile run android",
+    "web": "npm --workspace web run dev",
+    "web:build": "npm --workspace web run build"
   }
 }

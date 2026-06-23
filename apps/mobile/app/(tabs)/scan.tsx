@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Pressable, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Camera as CameraIcon, ChevronLeft, RefreshCcw, X } from 'lucide-react-native';
+import { Camera as CameraIcon, ChevronLeft, X } from 'lucide-react-native';
 import { Image } from 'expo-image';
 import { Text, Button, color, radius, space } from '@unsung/ui';
 import { Vignette } from '@/components/camera/Vignette';

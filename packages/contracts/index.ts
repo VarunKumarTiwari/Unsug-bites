@@ -61,6 +61,7 @@ export interface Review {
   rating: 1 | 2 | 3 | 4 | 5;
   note?: string;
   scanId?: string | null;
+  photoUrl?: string | null;
   createdAt: string;
 }
 

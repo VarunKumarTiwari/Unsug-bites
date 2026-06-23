@@ -2,9 +2,10 @@ import React from 'react';
 import { View, ScrollView, ActivityIndicator } from 'react-native';
 import { Image } from 'expo-image';
 import { useQuery } from '@tanstack/react-query';
-import { Calendar, Flame, Beef } from 'lucide-react-native';
+import { Flame, Beef } from 'lucide-react-native';
 import { Screen, Text, color, radius, shadow, space } from '@unsung/ui';
 import { reviews, gamification } from '@/lib/api';
+import type { Review } from '@unsung/contracts';
 
 const SAMPLE_PHOTO = 'https://images.unsplash.com/photo-1612874742237-6526221588e3?w=600';
 
@@ -43,7 +44,7 @@ export default function History() {
             />
 
             <View style={{ flex: 1, gap: space.lg - 4 }}>
-              {(reviewList ?? []).map((rev) => (
+              {(reviewList ?? []).map((rev: Review) => (
                 <View key={rev.id}>
                   <Text variant="label" tone="muted" style={{ marginBottom: space.sm }}>
                     {new Date(rev.createdAt).toLocaleDateString(undefined, {

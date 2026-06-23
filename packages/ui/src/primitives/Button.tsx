@@ -48,6 +48,7 @@ export function Button({
           opacity: disabled ? 0.5 : pressed ? 0.85 : 1,
           transform: [{ scale: pressed ? 0.98 : 1 }],
         },
+        // Pressable style callback can't contain another function style — filter it out
         typeof style === 'function' ? undefined : style,
       ]}
       {...rest}

@@ -14,6 +14,7 @@ import { Text, Button, color, radius, shadow, space } from '@unsung/ui';
 import { VibeTag } from '@/components/restaurant/VibeTag';
 import { HiddenGemBadge } from '@/components/restaurant/HiddenGemBadge';
 import { discovery } from '@/lib/api';
+import type { Dish } from '@unsung/contracts';
 
 type Tab = 'legends' | 'unsung';
 
@@ -89,7 +90,7 @@ export default function RestaurantDetail() {
           </Text>
 
           <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap', marginTop: 16 }}>
-            {r.vibes.map((v) => (
+            {r.vibes.map((v: string) => (
               <VibeTag key={v} label={v} />
             ))}
           </View>
@@ -119,7 +120,7 @@ export default function RestaurantDetail() {
                 Nothing here yet — be the first to log a dish.
               </Text>
             ) : (
-              dishes.map((d) => (
+              dishes.map((d: Dish) => (
                 <View
                   key={d.id}
                   style={{

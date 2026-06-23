@@ -8,6 +8,7 @@ import { StreakFlame } from '@/components/gamification/StreakFlame';
 import { RestaurantCard } from '@/components/restaurant/RestaurantCard';
 import { users, gamification, discovery } from '@/lib/api';
 import { useAuthStore } from '@/lib/store/auth';
+import type { Badge as BadgeType, RestaurantSummary } from '@unsung/contracts';
 
 export default function Profile() {
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
@@ -107,14 +108,10 @@ export default function Profile() {
             }}
           >
             {rows.map((row, idx) => (
-              <View key={idx} style={{ flexDirection: 'row', gap: space.sm }}>
-                {row.map((b) => (
+              <View key={idx} style={{ flexDirection: 'row', gap: space.sm, justifyContent: 'space-around' }}>
+                {row.map((b: BadgeType) => (
                   <Badge key={b.id} badge={b} />
                 ))}
-                {row.length < 3 &&
-                  Array(3 - row.length)
-                    .fill(0)
-                    .map((_, k) => <View key={k} style={{ flex: 1 }} />)}
               </View>
             ))}
           </View>
@@ -127,29 +124,30 @@ export default function Profile() {
             Favorite Restaurants
           </Text>
           <View style={{ flexDirection: 'row', gap: 12, marginTop: 8 }}>
-            {(nearby ?? []).slice(0, 2).map((r) => (
+            {(nearby ?? []).slice(0, 2).map((r: RestaurantSummary) => (
               <View key={r.id} style={{ flex: 1 }}>
                 <RestaurantCard restaurant={r} />
               </View>
             ))}
           </View>
 
-          {/* Dev toggle — tap to switch logged-in state for testing */}
-          <Pressable
-            onPress={toggle}
-            style={{
-              marginTop: space.xl,
-              alignSelf: 'center',
-              backgroundColor: color.surfaceMuted,
-              paddingVertical: space.sm,
-              paddingHorizontal: space.md,
-              borderRadius: radius.pill,
-            }}
-          >
-            <Text variant="smallMedium" tone="muted">
-              DEV: {isLoggedIn ? 'Log out' : 'Log in (mock)'}
-            </Text>
-          </Pressable>
+          {__DEV__ && (
+            <Pressable
+              onPress={toggle}
+              style={{
+                marginTop: space.xl,
+                alignSelf: 'center',
+                backgroundColor: color.surfaceMuted,
+                paddingVertical: space.sm,
+                paddingHorizontal: space.md,
+                borderRadius: radius.pill,
+              }}
+            >
+              <Text variant="smallMedium" tone="muted">
+                DEV: {isLoggedIn ? 'Log out' : 'Log in (mock)'}
+              </Text>
+            </Pressable>
+          )}
         </View>
       </ScrollView>
     </Screen>
