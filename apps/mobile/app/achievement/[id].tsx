@@ -4,6 +4,9 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Award } from 'lucide-react-native';
 import { Text, Button, color, radius } from '@unsung/ui';
 
+// Special dark background for achievement modals — not part of the main palette.
+const ACHIEVEMENT_BG = '#0F0E0E';
+
 export default function Achievement() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
@@ -18,13 +21,12 @@ export default function Achievement() {
     <View
       style={{
         flex: 1,
-        backgroundColor: '#0F0E0E',
+        backgroundColor: ACHIEVEMENT_BG,
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 32,
       }}
     >
-      {/* Confetti would render here via Skia / Lottie. */}
       <View
         style={{
           width: 180,
@@ -52,7 +54,7 @@ export default function Achievement() {
         }}
       >
         <Text variant="labelStrong" tone="surface">
-          Explorer
+          {title}
         </Text>
       </View>
 

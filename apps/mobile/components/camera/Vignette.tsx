@@ -5,10 +5,10 @@ import { View } from 'react-native';
 // Skia version comes later for a smoother gradient.
 export function Vignette() {
   return (
-    <View pointerEvents="none" style={{ ...StyleSheetAbsoluteFill }}>
+    <View pointerEvents="none" style={{ ...absoluteFill }}>
       <View
         style={{
-          ...StyleSheetAbsoluteFill,
+          ...absoluteFill,
           borderRadius: 0,
           shadowColor: '#000',
           shadowOpacity: 0.7,
@@ -33,7 +33,7 @@ export function Vignette() {
   );
 }
 
-const StyleSheetAbsoluteFill = {
+const absoluteFill = {
   position: 'absolute' as const,
   top: 0,
   left: 0,

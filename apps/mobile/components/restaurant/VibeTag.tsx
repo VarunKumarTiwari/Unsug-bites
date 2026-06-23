@@ -3,7 +3,8 @@ import { View } from 'react-native';
 import { Coffee, Wine, BookOpen, Moon, Sun, Heart, Compass } from 'lucide-react-native';
 import { color, radius, space, Text } from '@unsung/ui';
 
-const ICONS: Record<string, React.ComponentType<{ size: number; color: string }>> = {
+// lucide-react-native types use ColorValue for color — cast to any to keep the mapping simple
+const ICONS: Record<string, any> = {
   Cozy: Coffee,
   'Date Night': Wine,
   'Solo Dining': BookOpen,
