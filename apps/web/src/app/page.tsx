@@ -1,4 +1,5 @@
 import { CinematicHeroWrapper } from "@/components/cinematic-hero-wrapper";
+import { OpenAppButton } from "@/components/open-app-button";
 import { FloatingFoodHero } from "@/components/ui/hero-section-7";
 
 const heroImages = [
@@ -45,6 +46,9 @@ export default function Home() {
         description="Point your camera at any plate — our AI identifies ingredients, estimates macros, and logs the dish to your personal food journal. No manual entry needed."
         images={heroImages}
       />
+      <section className="flex justify-center -mt-8 sm:-mt-12 md:-mt-16 pb-12 px-6 relative z-20">
+        <OpenAppButton />
+      </section>
       <CinematicHeroWrapper />
     </main>
   );

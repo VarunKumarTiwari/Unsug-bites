@@ -1,36 +1,46 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# `apps/web` — Marketing landing page
 
-## Getting Started
+Next.js 16 (Turbopack). **Marketing only.** The functional app lives in
+`apps/mobile` and is served on this site at `/app/*` via the Expo web export.
 
-First, run the development server:
+See `WEB_SETUP.md` at the repo root for the full architecture.
+
+## Run
+
+```bash
+# From repo root:
+npm run mobile:export    # build /app once (Expo -> public/app/)
+npm run web              # next dev on :3000
+```
+
+Or from this directory:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`/app` will 404 in dev until `mobile:export` has run at least once.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Build
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+# From repo root (this is what CI runs):
+npm run web:build
+```
 
-## Learn More
+Equivalent to: `mobile:export` then `next build`.
 
-To learn more about Next.js, take a look at the following resources:
+## What's in `src/`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `app/page.tsx` — the landing page (FloatingFoodHero + CinematicHero).
+- `app/layout.tsx` — root layout, fonts (Inter + Fraunces).
+- `app/globals.css` — design tokens as CSS variables. Mirror of `packages/ui/src/tokens/color.ts`.
+- `components/open-app-button.tsx` — CTA that calls `smartAppLink.openApp()`.
+- `components/ui/*` — marketing components only. NO functional app code here.
+- `lib/smartAppLink.ts` — platform detection + routing (desktop → `/app`, mobile → store).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Rules
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+See `AGENTS.md` in this directory. Short version: never import `react-native`,
+`expo-*`, or `@unsung/ui` (it bundles RN primitives). Use `globals.css` CSS
+variables for colors, `lucide-react` for icons.
