@@ -31,6 +31,6 @@
         { "cameraPermission": "Unsung Bites uses your camera to scan dishes for ingredient + nutrition info." }
       ]
     ],
-    "experiments": { "typedRoutes": true }
+    "experiments": { "typedRoutes": true, "baseUrl": "/app" }
   }
 }

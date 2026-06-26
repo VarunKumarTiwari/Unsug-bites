@@ -4,6 +4,7 @@ import React, { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { cn } from "@/lib/utils";
+import { detectPlatform, openApp, storeUrlFor } from "@/lib/smartAppLink";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -189,7 +190,7 @@ export function CinematicHero({
       leave honest reviews, and earn badges for exploring off-radar spots.
     </>
   ),
-  metricValue = 47,
+  metricValue = 4,
   metricLabel = "Spots Found",
   ctaHeading = "Your next favorite spot.",
   ctaDescription = "Your next favorite spot is one scan away. Download the app and start exploring the places your friends haven't found yet.",
@@ -492,7 +493,11 @@ export function CinematicHero({
         </p>
         <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
           <a
-            href="#"
+            href={storeUrlFor("ios")}
+            onClick={(e) => {
+              e.preventDefault();
+              openApp({ platform: detectPlatform(navigator.userAgent) });
+            }}
             aria-label="Download on the App Store"
             className="btn-modern-light flex items-center justify-center gap-3 px-6 sm:px-8 py-3.5 sm:py-4 rounded-[1.25rem] group focus:outline-none focus:ring-2 focus:ring-candlelit focus:ring-offset-2"
           >
@@ -514,7 +519,12 @@ export function CinematicHero({
             </div>
           </a>
           <a
-            href="#"
+            href={storeUrlFor("android")}
+            onClick={(e) => {
+              e.preventDefault();
+              const platform = detectPlatform(navigator.userAgent);
+              openApp({ platform: platform === "desktop" ? "android" : platform });
+            }}
             aria-label="Get it on Google Play"
             className="btn-modern-dark flex items-center justify-center gap-3 px-6 sm:px-8 py-3.5 sm:py-4 rounded-[1.25rem] group focus:outline-none focus:ring-2 focus:ring-candlelit focus:ring-offset-2 focus:ring-offset-background"
           >
@@ -587,65 +597,119 @@ export function CinematicHero({
                     </div>
 
                     {/* App UI */}
-                    <div className="relative w-full h-full pt-12 px-5 pb-8 flex flex-col">
-                      <div className="phone-widget flex justify-between items-center mb-6">
-                        <div className="flex flex-col">
-                          <span className="text-[10px] text-ink-muted uppercase tracking-widest font-bold mb-1">
+                    <div className="relative w-full h-full pt-11 px-4 pb-6 flex flex-col overflow-hidden">
+                      {/* Header */}
+                      <div className="phone-widget flex justify-between items-start mb-2">
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-candlelit shadow-[0_0_6px_var(--color-candlelit)]" aria-hidden="true" />
+                          <span className="text-[9px] text-cream/60 uppercase tracking-[0.18em] font-bold">
                             Nearby
                           </span>
-                          <span
-                            className="text-xl font-bold tracking-tight text-cream drop-shadow-md"
-                            style={{ fontFamily: "var(--font-fraunces)" }}
-                          >
-                            Discover
-                          </span>
                         </div>
-                        <div className="w-9 h-9 rounded-full bg-candlelit/10 text-candlelit flex items-center justify-center font-bold text-sm border border-candlelit/20 shadow-lg shadow-black/50">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                          </svg>
-                        </div>
-                      </div>
-
-                      {/* Progress Ring */}
-                      <div className="phone-widget relative w-36 h-36 mx-auto flex items-center justify-center mb-6 drop-shadow-[0_15px_25px_rgba(0,0,0,0.8)]">
-                        <svg className="absolute inset-0 w-full h-full" aria-hidden="true">
-                          <circle cx="72" cy="72" r="56" fill="none" stroke="rgba(253,252,247,0.03)" strokeWidth="10" />
-                          <circle className="progress-ring stroke-candlelit" cx="72" cy="72" r="56" fill="none" strokeWidth="10" />
+                        <svg className="w-3.5 h-3.5 text-cream/60" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
-                        <div className="text-center z-10 flex flex-col items-center">
-                          <span className="counter-val text-3xl font-extrabold tracking-tighter text-cream">0</span>
-                          <span className="text-[8px] text-candlelit/60 uppercase tracking-[0.1em] font-bold mt-0.5">
-                            {metricLabel}
+                      </div>
+
+                      {/* Title */}
+                      <h4
+                        className="phone-widget text-candlelit text-[1.7rem] font-bold leading-[1.05] tracking-tight drop-shadow-md"
+                        style={{ fontFamily: "var(--font-fraunces)" }}
+                      >
+                        Hidden Gems
+                      </h4>
+                      <div className="phone-widget flex items-center gap-2 mt-1 mb-3">
+                        <span className="block w-4 h-px bg-cream/25" aria-hidden="true" />
+                        <span className="text-[10px] text-cream/55">
+                          <span className="counter-val text-cream font-semibold">0</span>
+                          <span> spots worth finding</span>
+                        </span>
+                      </div>
+
+                      {/* Vibe chips */}
+                      <div className="phone-widget flex gap-1.5 mb-3 -mx-1 px-1 overflow-hidden">
+                        {["Cozy", "Date Night", "Hidden Gem", "Late Night"].map((chip, i) => (
+                          <span
+                            key={chip}
+                            className={cn(
+                              "shrink-0 px-2.5 py-1 rounded-full text-[9px] font-semibold tracking-tight border whitespace-nowrap",
+                              i === 2
+                                ? "bg-candlelit/15 text-candlelit border-candlelit/30"
+                                : "text-cream/70 border-cream/15"
+                            )}
+                          >
+                            {chip}
                           </span>
+                        ))}
+                      </div>
+
+                      {/* TOP PICK eyebrow */}
+                      <div className="phone-widget flex items-center gap-2 mb-2">
+                        <span className="text-[8px] text-cream/40 uppercase tracking-[0.2em] font-bold">
+                          Top Pick
+                        </span>
+                        <span className="flex-1 h-px bg-cream/10" aria-hidden="true" />
+                      </div>
+
+                      {/* Restaurant card */}
+                      <div className="phone-widget widget-depth rounded-2xl overflow-hidden">
+                        <div
+                          className="relative h-[120px] w-full"
+                          style={{
+                            background:
+                              "linear-gradient(135deg, color-mix(in srgb, var(--color-candlelit), black 30%) 0%, color-mix(in srgb, var(--color-olive), black 20%) 100%)",
+                          }}
+                          aria-hidden="true"
+                        >
+                          <div
+                            className="absolute inset-0 opacity-60 mix-blend-overlay"
+                            style={{
+                              background:
+                                "radial-gradient(circle at 30% 40%, rgba(255,180,80,0.5), transparent 50%), radial-gradient(circle at 70% 60%, rgba(120,60,30,0.6), transparent 55%)",
+                            }}
+                          />
+                          <span className="absolute top-2.5 left-2.5 inline-flex items-center gap-1 px-2 py-1 rounded-full bg-cream text-ink text-[8px] font-bold tracking-wider uppercase shadow-md">
+                            <svg className="w-2.5 h-2.5 text-candlelit" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                              <path d="M12 2l1.6 4.9H19l-4.3 3.1 1.6 5L12 12l-4.3 3 1.6-5L5 6.9h5.4z" />
+                            </svg>
+                            Hidden Gem
+                          </span>
+                        </div>
+                        <div className="px-3 py-2.5">
+                          <div className="h-3 w-28 rounded-full bg-cream/15 shadow-inner animate-pulse" aria-hidden="true" />
+                          <div className="h-2 w-40 rounded-full bg-cream/8 shadow-inner mt-2 animate-pulse" aria-hidden="true" />
+                          <div className="flex items-center gap-1.5 mt-2">
+                            <span className="w-2.5 h-2.5 rounded-full bg-candlelit/40 animate-pulse" aria-hidden="true" />
+                            <span className="h-2 w-10 rounded-full bg-cream/12 animate-pulse" aria-hidden="true" />
+                            <span className="h-2 w-8 rounded-full bg-cream/8 animate-pulse" aria-hidden="true" />
+                          </div>
                         </div>
                       </div>
 
-                      {/* List Items */}
-                      <div className="space-y-3">
-                        <div className="phone-widget widget-depth rounded-2xl p-3 flex items-center">
-                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-olive/30 to-olive/5 flex items-center justify-center mr-3 border border-olive/20 shadow-inner">
-                            <svg className="w-4 h-4 text-olive drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </svg>
-                          </div>
-                          <div className="flex-1">
-                            <div className="h-2 w-24 bg-stone rounded-full mb-2 shadow-inner" />
-                            <div className="h-1.5 w-14 bg-ink rounded-full shadow-inner" />
-                          </div>
+                      <div className="phone-widget flex items-center gap-2 mt-2 mb-2">
+                        <span className="text-[8px] text-cream/35 uppercase tracking-[0.2em] font-bold">
+                          More Nearby
+                        </span>
+                        <span className="flex-1 h-px bg-cream/8" aria-hidden="true" />
+                        <span className="text-[9px] text-cream/40 font-bold">3</span>
+                      </div>
+
+                      <div className="phone-widget widget-depth rounded-xl p-2.5 flex items-center gap-2.5">
+                        <div
+                          className="w-11 h-11 rounded-lg shrink-0"
+                          style={{
+                            background:
+                              "linear-gradient(135deg, color-mix(in srgb, var(--color-olive), black 10%) 0%, color-mix(in srgb, var(--color-candlelit), black 40%) 100%)",
+                          }}
+                          aria-hidden="true"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="h-2 w-20 rounded-full bg-cream/15 animate-pulse" aria-hidden="true" />
+                          <div className="h-1.5 w-28 rounded-full bg-cream/8 mt-1.5 animate-pulse" aria-hidden="true" />
                         </div>
-                        <div className="phone-widget widget-depth rounded-2xl p-3 flex items-center">
-                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-candlelit/20 to-candlelit/5 flex items-center justify-center mr-3 border border-candlelit/20 shadow-inner">
-                            <svg className="w-4 h-4 text-candlelit drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </svg>
-                          </div>
-                          <div className="flex-1">
-                            <div className="h-2 w-20 bg-stone rounded-full mb-2 shadow-inner" />
-                            <div className="h-1.5 w-28 bg-ink rounded-full shadow-inner" />
-                          </div>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <span className="w-2 h-2 rounded-full bg-candlelit/40" aria-hidden="true" />
+                          <span className="h-1.5 w-5 rounded-full bg-cream/12 animate-pulse" aria-hidden="true" />
                         </div>
                       </div>
 

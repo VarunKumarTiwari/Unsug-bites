@@ -12,6 +12,7 @@
     "mobile:ios": "npm --workspace @unsung/mobile run ios",
     "mobile:android": "npm --workspace @unsung/mobile run android",
     "web": "npm --workspace web run dev",
-    "web:build": "npm --workspace web run build"
+    "web:build": "npm run mobile:export && npm --workspace web run build",
+    "mobile:export": "cd apps/mobile && rm -rf dist && npx expo export --platform web && rm -rf ../web/public/app && mkdir -p ../web/public/app && cp -r dist/. ../web/public/app/"
   }
 }
