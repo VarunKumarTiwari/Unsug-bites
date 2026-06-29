@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Pressable, StyleSheet, Platform } from 'react-native';
+import { View, Pressable, ScrollView, TextInput, KeyboardAvoidingView, StyleSheet, Platform, Dimensions } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Camera as CameraIcon, ChevronLeft, X, Check } from 'lucide-react-native';
+import { Camera as CameraIcon, ChevronLeft, X, Check, MapPin } from 'lucide-react-native';
 import { Image } from 'expo-image';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -10,6 +12,9 @@ import Animated, {
   withTiming,
   withSpring,
   withSequence,
+  interpolate,
+  Extrapolation,
+  runOnJS,
   FadeIn,
   FadeInDown,
   FadeInUp,
@@ -19,17 +24,19 @@ import * as Haptics from 'expo-haptics';
 import { Text, Button, color, radius, space, spring } from '@unsung/ui';
 import { Vignette } from '@/components/camera/Vignette';
 import { HolographicBrackets } from '@/components/camera/HolographicBrackets';
+import { StarRating } from '@/components/review/StarRating';
+import { VibeChip } from '@/components/feed/VibeChip';
 import { scan, nutrition } from '@/lib/api';
 import { useReduceMotion } from '@/hooks/useReduceMotion';
 import type { ScanResult, NutritionFact } from '@unsung/contracts';
+
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 type Phase = 'preview' | 'scanning' | 'result';
 
 // ── Layout constants ──
 const SHUTTER_SIZE = 76;
 const SHUTTER_RING_WIDTH = 4;
-const TOP_BAR_TOP = 56;
-const BOTTOM_OFFSET = 48;
 const ROUND_BTN = 40;
 
 function hapticImpact(style: Haptics.ImpactFeedbackStyle = Haptics.ImpactFeedbackStyle.Light) {
@@ -41,6 +48,7 @@ function hapticImpact(style: Haptics.ImpactFeedbackStyle = Haptics.ImpactFeedbac
 export default function Scan() {
   const router = useRouter();
   const reduceMotion = useReduceMotion();
+  const insets = useSafeAreaInsets();
   const [phase, setPhase] = useState<Phase>('preview');
   const [result, setResult] = useState<ScanResult | null>(null);
   const [nut, setNut] = useState<NutritionFact | null>(null);
@@ -112,7 +120,7 @@ export default function Scan() {
       {phase !== 'result' && <HolographicBrackets />}
 
       {/* Top bar */}
-      <View style={styles.topBar}>
+      <View style={[styles.topBar, { top: insets.top + 12 }]}>
         <RoundIcon onPress={() => { hapticImpact(); router.back(); }}>
           <ChevronLeft size={20} color={color.surface} />
         </RoundIcon>
@@ -127,7 +135,7 @@ export default function Scan() {
       {phase === 'preview' && (
         <Animated.View
           entering={reduceMotion ? undefined : FadeIn.duration(300)}
-          style={styles.previewBottom}
+          style={[styles.previewBottom, { bottom: insets.bottom + 16 }]}
         >
           <View style={styles.eyebrowRow}>
             <View style={styles.eyebrowDotLight} />
@@ -157,7 +165,7 @@ export default function Scan() {
       {phase === 'scanning' && (
         <Animated.View
           entering={reduceMotion ? undefined : FadeIn.duration(220)}
-          style={styles.scanningBottom}
+          style={[styles.scanningBottom, { bottom: insets.bottom + 16 }]}
         >
           <ShimmerSweep reduceMotion={reduceMotion} />
           <View style={styles.scanningCaptionRow}>
@@ -175,10 +183,6 @@ export default function Scan() {
           result={result}
           nutrition={nut}
           reduceMotion={reduceMotion}
-          onSubmit={() => {
-            hapticImpact(Haptics.ImpactFeedbackStyle.Medium);
-            router.push(`/achievement/b_carbonara`);
-          }}
         />
       )}
     </View>
@@ -203,17 +207,22 @@ function RoundIcon({ onPress, children }: { onPress: () => void; children: React
 // ── Editorial shimmer sweep (replaces flat translucent box) ──
 function ShimmerSweep({ reduceMotion }: { reduceMotion: boolean }) {
   const x = useSharedValue(-1);
+  const [shimmerWidth, setShimmerWidth] = React.useState(240);
+
   useEffect(() => {
     if (reduceMotion) return;
     x.value = withRepeat(withTiming(1, { duration: 1400, easing: Easing.inOut(Easing.cubic) }), -1, false);
   }, [reduceMotion, x]);
 
   const sweepStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: x.value * 240 }],
+    transform: [{ translateX: x.value * shimmerWidth }],
   }));
 
   return (
-    <View style={styles.shimmer}>
+    <View
+      style={styles.shimmer}
+      onLayout={(e) => setShimmerWidth(e.nativeEvent.layout.width)}
+    >
       <Animated.View style={[styles.shimmerSweep, sweepStyle]} />
     </View>
   );
@@ -229,69 +238,266 @@ function PulsingDot({ reduceMotion }: { reduceMotion: boolean }) {
   return <Animated.View style={[styles.pulseDot, s]} />;
 }
 
-// ── Result sheet ──
+// ── Result sheet — expands in place, gesture-dismissable ──
+// ponytail: snaps sheet so button + content fill visible area above tab bar
+const SNAP_HALF = SCREEN_HEIGHT * 0.50;
+const SNAP_FULL = SCREEN_HEIGHT * 0.12;
+const SNAP_DISMISSED = SCREEN_HEIGHT;
+const SHEET_SPRING = { damping: 22, stiffness: 160, mass: 1 };
+
+const CUISINES = ['Italian', 'Japanese', 'Mexican', 'Indian', 'French', 'Thai', 'American', 'Other'];
+const PORTIONS = ['Small', 'Just Right', 'Generous'];
+const OCCASIONS = ['Solo', 'Date', 'Friends', 'Business'];
+
 function ResultSheet({
   result,
-  nutrition,
+  nutrition: nut,
   reduceMotion,
-  onSubmit,
 }: {
   result: ScanResult;
   nutrition: NutritionFact;
   reduceMotion: boolean;
-  onSubmit: () => void;
 }) {
+  const [expanded, setExpanded] = useState(false);
+  const translateY = useSharedValue(SNAP_HALF);
+  const context = useSharedValue(0);
+
+  // Form state
+  const [restaurant, setRestaurant] = useState('');
+  const [location, setLocation] = useState('');
+  const [cuisine, setCuisine] = useState('');
+  const [overall, setOverall] = useState(0);
+  const [taste, setTaste] = useState(0);
+  const [presentation, setPresentation] = useState(0);
+  const [portion, setPortion] = useState('');
+  const [orderAgain, setOrderAgain] = useState<boolean | null>(null);
+  const [occasion, setOccasion] = useState('');
+  const [notes, setNotes] = useState('');
+
+  useEffect(() => {
+    // Initial slide-up entrance
+    translateY.value = withSpring(SNAP_HALF, SHEET_SPRING);
+  }, [translateY]);
+
+  function animateTo(target: number) {
+    translateY.value = reduceMotion
+      ? withTiming(target, { duration: 0 })
+      : withSpring(target, SHEET_SPRING);
+  }
+
+  function handleExpand() {
+    hapticImpact(Haptics.ImpactFeedbackStyle.Medium);
+    setExpanded(true);
+    animateTo(SNAP_FULL);
+  }
+
+  function handleDismiss() {
+    setExpanded(false);
+    animateTo(SNAP_HALF);
+  }
+
+  const gesture = Gesture.Pan()
+    .activeOffsetY([-10, 10])
+    .onStart(() => {
+      context.value = translateY.value;
+    })
+    .onUpdate((e) => {
+      translateY.value = Math.max(SNAP_FULL, context.value + e.translationY);
+    })
+    .onEnd((e) => {
+      const velocity = e.velocityY;
+      if (velocity > 600) {
+        if (expanded) {
+          if (reduceMotion) {
+            translateY.value = withTiming(SNAP_HALF, { duration: 0 });
+          } else {
+            translateY.value = withSpring(SNAP_HALF, SHEET_SPRING);
+          }
+          runOnJS(setExpanded)(false);
+        }
+        return;
+      }
+      if (velocity < -600) {
+        if (reduceMotion) {
+          translateY.value = withTiming(SNAP_FULL, { duration: 0 });
+        } else {
+          translateY.value = withSpring(SNAP_FULL, SHEET_SPRING);
+        }
+        runOnJS(setExpanded)(true);
+        return;
+      }
+      const current = translateY.value;
+      const distHalf = Math.abs(current - SNAP_HALF);
+      const distFull = Math.abs(current - SNAP_FULL);
+      if (distFull < distHalf) {
+        if (reduceMotion) {
+          translateY.value = withTiming(SNAP_FULL, { duration: 0 });
+        } else {
+          translateY.value = withSpring(SNAP_FULL, SHEET_SPRING);
+        }
+        runOnJS(setExpanded)(true);
+      } else {
+        if (reduceMotion) {
+          translateY.value = withTiming(SNAP_HALF, { duration: 0 });
+        } else {
+          translateY.value = withSpring(SNAP_HALF, SHEET_SPRING);
+        }
+        runOnJS(setExpanded)(false);
+      }
+    });
+
+  const sheetStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+  }));
+
   return (
-    <Animated.View
-      entering={reduceMotion ? undefined : FadeInUp.duration(420).springify().damping(20)}
-      style={styles.sheet}
-    >
-      <View style={styles.sheetHandle} />
-
-      <Animated.View entering={reduceMotion ? undefined : FadeInDown.delay(80).duration(320)}>
-        <View style={styles.eyebrowRow}>
-          <View style={styles.eyebrowDot} />
-          <Text variant="labelStrong" tone="muted" style={styles.eyebrowText}>AI DETECTED</Text>
+    <GestureDetector gesture={gesture}>
+      <Animated.View style={[styles.sheet, sheetStyle]}>
+        <View style={styles.sheetHandleArea}>
+          <View style={styles.sheetHandle} />
         </View>
-        <Text variant="display" tone="base" style={styles.sheetTitle}>
-          {result.detectedDish}
-        </Text>
-        <View style={styles.confidenceRow}>
-          <View style={styles.confidenceCheck}>
-            <Check size={10} color={color.success.base} strokeWidth={3} />
+
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={{ flex: 1 }}
+        >
+        <ScrollView
+          scrollEnabled={expanded}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.sheetScroll}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Scan info — always visible */}
+          <View style={styles.eyebrowRow}>
+            <View style={styles.eyebrowDot} />
+            <Text variant="labelStrong" tone="muted" style={styles.eyebrowText}>AI DETECTED</Text>
           </View>
-          <Text variant="smallStrong" tone="success">
-            {Math.round(result.confidence * 100)}% confidence
+          <Text variant="display" tone="base" style={styles.sheetTitle}>
+            {result.detectedDish}
           </Text>
-        </View>
-      </Animated.View>
+          <View style={styles.confidenceRow}>
+            <View style={styles.confidenceCheck}>
+              <Check size={10} color={color.success.base} strokeWidth={3} />
+            </View>
+            <Text variant="smallStrong" tone="success">
+              {Math.round(result.confidence * 100)}% confidence
+            </Text>
+          </View>
 
-      <Animated.View entering={reduceMotion ? undefined : FadeInDown.delay(160).duration(320)}>
-        <View style={styles.sectionLabelRow}>
-          <Text variant="labelStrong" style={styles.sectionLabelText}>KEY INGREDIENTS</Text>
-          <View style={styles.sectionLabelLine} />
-        </View>
-        <Text variant="body" style={styles.ingredients}>
-          {result.ingredients.join(' · ')}
-        </Text>
-      </Animated.View>
+          <View style={styles.sectionLabelRow}>
+            <Text variant="labelStrong" style={styles.sectionLabelText}>KEY INGREDIENTS</Text>
+            <View style={styles.sectionLabelLine} />
+          </View>
+          <Text variant="body" style={styles.ingredients}>
+            {result.ingredients.join(' · ')}
+          </Text>
 
-      <Animated.View entering={reduceMotion ? undefined : FadeInDown.delay(220).duration(320)}>
-        <View style={styles.sectionLabelRow}>
-          <Text variant="labelStrong" style={styles.sectionLabelText}>NUTRITION</Text>
-          <View style={styles.sectionLabelLine} />
-        </View>
-        <View style={styles.nutRow}>
-          <NutChip label="Calories" value={`${nutrition.calories}`} />
-          <NutChip label="Protein" value={`${nutrition.protein_g}g`} />
-          <NutChip label="Carbs" value={`${nutrition.carbs_g}g`} />
-        </View>
-      </Animated.View>
+          <View style={styles.sectionLabelRow}>
+            <Text variant="labelStrong" style={styles.sectionLabelText}>NUTRITION</Text>
+            <View style={styles.sectionLabelLine} />
+          </View>
+          <View style={styles.nutRow}>
+            <NutChip label="CALORIES" value={`${nut.calories}`} />
+            <NutChip label="PROTEIN" value={`${nut.protein_g}g`} />
+            <NutChip label="CARBS" value={`${nut.carbs_g}g`} />
+          </View>
 
-      <Animated.View entering={reduceMotion ? undefined : FadeInDown.delay(290).duration(320)}>
-        <Button label="Log & Submit Review" onPress={onSubmit} style={styles.submitBtn} />
+          {/* Button — hidden when expanded */}
+          {!expanded && (
+            <Button label="Log & Submit Review" onPress={handleExpand} style={styles.submitBtn} />
+          )}
+
+          {/* Review form — visible when expanded */}
+          {expanded && (
+            <View>
+              <View style={styles.sectionLabelRow}>
+                <Text variant="labelStrong" style={styles.sectionLabelText}>RESTAURANT</Text>
+                <View style={styles.sectionLabelLine} />
+              </View>
+              <TextInput
+                value={restaurant}
+                onChangeText={setRestaurant}
+                placeholder="Restaurant Name"
+                placeholderTextColor={color.text.subtle}
+                style={styles.formInput}
+              />
+              <View style={styles.locationRow}>
+                <MapPin size={16} color={color.text.subtle} />
+                <TextInput
+                  value={location}
+                  onChangeText={setLocation}
+                  placeholder="Location"
+                  placeholderTextColor={color.text.subtle}
+                  style={[styles.formInput, { flex: 1, marginBottom: 0 }]}
+                />
+              </View>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
+                {CUISINES.map((c) => (
+                  <VibeChip key={c} vibe={c} isActive={cuisine === c} onPress={() => setCuisine(c)} />
+                ))}
+              </ScrollView>
+
+              <View style={styles.sectionLabelRow}>
+                <Text variant="labelStrong" style={styles.sectionLabelText}>RATING</Text>
+                <View style={styles.sectionLabelLine} />
+              </View>
+              <StarRating label="Overall" value={overall} onChange={setOverall} size={32} />
+              <StarRating label="Taste" value={taste} onChange={setTaste} size={24} />
+              <StarRating label="Presentation" value={presentation} onChange={setPresentation} size={24} />
+
+              <View style={styles.sectionLabelRow}>
+                <Text variant="labelStrong" style={styles.sectionLabelText}>DETAILS</Text>
+                <View style={styles.sectionLabelLine} />
+              </View>
+              <View style={styles.chipRow}>
+                {PORTIONS.map((p) => (
+                  <VibeChip key={p} vibe={p} isActive={portion === p} onPress={() => setPortion(p)} />
+                ))}
+              </View>
+
+              <View style={styles.sectionLabelRow}>
+                <Text variant="labelStrong" style={styles.sectionLabelText}>ORDER AGAIN?</Text>
+                <View style={styles.sectionLabelLine} />
+              </View>
+              <View style={styles.chipRow}>
+                <VibeChip vibe="Yes" isActive={orderAgain === true} onPress={() => setOrderAgain(true)} />
+                <VibeChip vibe="No" isActive={orderAgain === false} onPress={() => setOrderAgain(false)} />
+              </View>
+
+              <View style={styles.sectionLabelRow}>
+                <Text variant="labelStrong" style={styles.sectionLabelText}>OCCASION</Text>
+                <View style={styles.sectionLabelLine} />
+              </View>
+              <View style={styles.chipRow}>
+                {OCCASIONS.map((o) => (
+                  <VibeChip key={o} vibe={o} isActive={occasion === o} onPress={() => setOccasion(o)} />
+                ))}
+              </View>
+
+              <View style={styles.sectionLabelRow}>
+                <Text variant="labelStrong" style={styles.sectionLabelText}>NOTES</Text>
+                <View style={styles.sectionLabelLine} />
+              </View>
+              <TextInput
+                value={notes}
+                onChangeText={setNotes}
+                placeholder="Any thoughts..."
+                placeholderTextColor={color.text.subtle}
+                multiline
+                style={styles.formTextArea}
+              />
+
+              <Button
+                label="Save Review"
+                onPress={() => { hapticImpact(); handleDismiss(); }}
+                style={styles.saveBtn}
+              />
+            </View>
+          )}
+        </ScrollView>
+        </KeyboardAvoidingView>
       </Animated.View>
-    </Animated.View>
+    </GestureDetector>
   );
 }
 
@@ -311,7 +517,6 @@ const styles = StyleSheet.create({
   // Top bar
   topBar: {
     position: 'absolute',
-    top: TOP_BAR_TOP,
     left: 16,
     right: 16,
     flexDirection: 'row',
@@ -337,7 +542,6 @@ const styles = StyleSheet.create({
   // Preview
   previewBottom: {
     position: 'absolute',
-    bottom: BOTTOM_OFFSET,
     left: 0,
     right: 0,
     alignItems: 'center',
@@ -371,7 +575,6 @@ const styles = StyleSheet.create({
   // Scanning
   scanningBottom: {
     position: 'absolute',
-    bottom: BOTTOM_OFFSET + 16,
     left: space.lg,
     right: space.lg,
     alignItems: 'center',
@@ -410,15 +613,23 @@ const styles = StyleSheet.create({
   // Result sheet
   sheet: {
     position: 'absolute',
-    bottom: 0,
+    top: 0,
     left: 0,
     right: 0,
+    height: SCREEN_HEIGHT,
     backgroundColor: color.surface,
     borderTopLeftRadius: radius.xl,
     borderTopRightRadius: radius.xl,
+  },
+  sheetScroll: {
     paddingHorizontal: 20,
+    paddingBottom: 150,
+  },
+  sheetHandleArea: {
     paddingTop: 14,
-    paddingBottom: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 44,
   },
   sheetHandle: {
     width: 40,
@@ -464,4 +675,28 @@ const styles = StyleSheet.create({
   nutValue: { marginTop: 4 },
 
   submitBtn: { marginTop: space.lg },
+  saveBtn: { marginTop: space.lg, marginBottom: space.xl },
+
+  // Form inputs
+  formInput: {
+    backgroundColor: color.surfaceMuted,
+    borderRadius: radius.md,
+    paddingVertical: space.sm,
+    paddingHorizontal: space.sm,
+    fontSize: 15,
+    color: color.text.base,
+    marginBottom: space.lg,
+  },
+  locationRow: { flexDirection: 'row', alignItems: 'center', gap: space.xs, marginBottom: space.sm },
+  formTextArea: {
+    backgroundColor: color.surfaceMuted,
+    borderRadius: radius.sm,
+    paddingVertical: space.sm + 2,
+    paddingHorizontal: space.sm + 4,
+    fontSize: 15,
+    color: color.text.base,
+    minHeight: 80,
+    textAlignVertical: 'top',
+  },
+  chipRow: { flexDirection: 'row', gap: space.sm, marginTop: space.xs },
 });

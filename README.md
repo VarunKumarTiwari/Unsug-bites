@@ -139,6 +139,25 @@ To run a single service: `docker compose up discovery`
 
 To stop: `docker compose down`
 
+## Share the app
+
+### Android APK
+
+```bash
+cd apps/mobile/android
+./gradlew app:assembleRelease
+```
+
+APK: `apps/mobile/android/app/build/outputs/apk/release/app-release.apk`
+
+**Share:** Upload to Google Drive or WeTransfer and send the **link** (don't attach `.apk` directly — messaging apps block it).
+
+**Install:** Open link on Android phone → download → tap to install → allow "unknown apps" if prompted → uninstall old version first if "App not installed" appears.
+
+### iOS
+
+Requires an Apple Developer account ($99/yr) + Xcode. Distribute via TestFlight.
+
 ## Current phase
 
 Frontend SPA only, fully driven by mock JSON. No real backend, no real maps, no real AI.

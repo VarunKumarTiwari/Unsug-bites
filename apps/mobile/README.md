@@ -41,6 +41,17 @@ lib/
 
 Every screen calls `@/lib/api` only. Each `lib/api/*.ts` reads from a JSON mock today. To go live: replace the function bodies with `fetch(...)`. Screens don't change.
 
+## Share the app
+
+```bash
+cd android
+./gradlew app:assembleRelease
+```
+
+APK: `android/app/build/outputs/apk/release/app-release.apk`
+
+Upload to Google Drive / WeTransfer and send the **link** (don't attach `.apk` — messaging apps block it).
+
 ## Two files asking for your input
 
 - `lib/ranking/hiddenGemScore.ts` — define what "hidden gem" means to you

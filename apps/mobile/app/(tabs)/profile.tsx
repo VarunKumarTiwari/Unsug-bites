@@ -6,6 +6,7 @@ import {
   Platform,
   RefreshControl,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { useQuery } from '@tanstack/react-query';
 import Animated, {
@@ -52,6 +53,7 @@ export default function Profile() {
   const toggle = useAuthStore((s) => s.toggle);
   const reduceMotion = useReduceMotion();
   const scrollY = useSharedValue(0);
+  const insets = useSafeAreaInsets();
   const [refreshing, setRefreshing] = useState(false);
 
   const { data: me } = useQuery({
@@ -366,8 +368,15 @@ export default function Profile() {
       </Animated.ScrollView>
 
       {/* Collapsed header */}
-      <Animated.View style={[styles.collapsedHeader, collapsedHeaderStyle]} pointerEvents="none">
-        <View style={styles.collapsedHeaderInner}>
+      <Animated.View
+        style={[
+          styles.collapsedHeader,
+          { height: COLLAPSED_HEADER_H + insets.top, paddingTop: insets.top },
+          collapsedHeaderStyle,
+        ]}
+        pointerEvents="none"
+      >
+        <View style={[styles.collapsedHeaderInner, { height: COLLAPSED_HEADER_H }]}>
           {isLoggedIn && me?.avatarUrl ? (
             <Image source={{ uri: me.avatarUrl }} style={styles.collapsedAvatar} contentFit="cover" />
           ) : (
@@ -503,17 +512,14 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    height: COLLAPSED_HEADER_H,
     backgroundColor: color.bg,
     borderBottomWidth: 1,
     borderBottomColor: color.border,
   },
   collapsedHeaderInner: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: H_PAD,
-    height: '100%',
   },
   collapsedAvatar: { width: 28, height: 28, borderRadius: 999, marginRight: space.sm },
   collapsedTitle: { marginLeft: 0 },

@@ -379,10 +379,14 @@ export default function Home() {
 
       {/* Collapsed title bar */}
       <Animated.View
-        style={[styles.collapsedHeader, collapsedHeaderStyle]}
+        style={[
+          styles.collapsedHeader,
+          { height: COLLAPSED_HEADER_H + insets.top, paddingTop: insets.top },
+          collapsedHeaderStyle,
+        ]}
         pointerEvents={chipsStuck ? 'auto' : 'none'}
       >
-        <View style={styles.collapsedHeaderInner}>
+        <View style={[styles.collapsedHeaderInner, { height: COLLAPSED_HEADER_H }]}>
           <View style={styles.collapsedLeft}>
             <View style={styles.eyebrowDot} />
             <Text variant="h3Serif" tone="primary" style={styles.collapsedTitle}>Hidden Gems</Text>
@@ -403,7 +407,7 @@ export default function Home() {
 
       {/* Sticky vibe chips */}
       <Animated.View
-        style={[styles.stickyChipsBar, { top: COLLAPSED_HEADER_H }, stickyChipsStyle]}
+        style={[styles.stickyChipsBar, { top: COLLAPSED_HEADER_H + insets.top }, stickyChipsStyle]}
         pointerEvents={chipsStuck ? 'auto' : 'none'}
       >
         <ScrollView
@@ -502,18 +506,15 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    height: COLLAPSED_HEADER_H,
     backgroundColor: color.bg,
     borderBottomWidth: 1,
     borderBottomColor: color.border,
   },
   collapsedHeaderInner: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: H_PAD,
-    height: '100%',
   },
   collapsedLeft: { flexDirection: 'row', alignItems: 'center' },
   collapsedTitle: { marginLeft: space.sm },

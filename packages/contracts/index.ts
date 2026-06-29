@@ -57,8 +57,18 @@ export interface Review {
   id: string;
   userId: string;
   restaurantId: string;
+  restaurantName: string;
+  location: string;
+  cuisine: string;
   dishName: string;
+  ingredients: string[];
+  nutrition?: { calories: number; protein_g: number; carbs_g: number };
   rating: 1 | 2 | 3 | 4 | 5;
+  tasteRating: 1 | 2 | 3 | 4 | 5;
+  presentationRating: 1 | 2 | 3 | 4 | 5;
+  portionSize: 'Small' | 'Just Right' | 'Generous';
+  orderAgain: boolean;
+  occasion: 'Solo' | 'Date' | 'Friends' | 'Business';
   note?: string;
   scanId?: string | null;
   photoUrl?: string | null;

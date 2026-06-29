@@ -6,6 +6,7 @@ import {
   Platform,
   RefreshControl,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { useNavigation } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
@@ -51,6 +52,7 @@ export default function History() {
   const scrollY = useSharedValue(0);
   const reduceMotion = useReduceMotion();
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const [refreshing, setRefreshing] = useState(false);
 
   const {
@@ -268,8 +270,15 @@ export default function History() {
       </Animated.ScrollView>
 
       {/* Collapsed header */}
-      <Animated.View style={[styles.collapsedHeader, collapsedHeaderStyle]} pointerEvents="none">
-        <View style={styles.collapsedHeaderInner}>
+      <Animated.View
+        style={[
+          styles.collapsedHeader,
+          { height: COLLAPSED_HEADER_H + insets.top, paddingTop: insets.top },
+          collapsedHeaderStyle,
+        ]}
+        pointerEvents="none"
+      >
+        <View style={[styles.collapsedHeaderInner, { height: COLLAPSED_HEADER_H }]}>
           <View style={styles.collapsedLeft}>
             <View style={styles.eyebrowDot} />
             <Text variant="h3Serif" tone="primary" style={styles.collapsedTitle}>Food History</Text>
@@ -371,17 +380,14 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    height: COLLAPSED_HEADER_H,
     backgroundColor: color.bg,
     borderBottomWidth: 1,
     borderBottomColor: color.border,
   },
   collapsedHeaderInner: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: H_PAD,
-    height: '100%',
   },
   collapsedLeft: { flexDirection: 'row', alignItems: 'center' },
   collapsedTitle: { marginLeft: space.sm },
