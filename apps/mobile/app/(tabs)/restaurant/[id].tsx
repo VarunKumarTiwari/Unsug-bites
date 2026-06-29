@@ -6,6 +6,7 @@ import {
   Platform,
   useWindowDimensions,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
@@ -32,10 +33,7 @@ import type { Dish } from '@unsung/contracts';
 type Tab = 'legends' | 'unsung';
 
 // ── Layout constants ──
-const HERO_H = 360;
 const COLLAPSED_HEADER_H = 56;
-const COLLAPSE_START = HERO_H * 0.55;
-const COLLAPSE_END = HERO_H * 0.8;
 const PARALLAX_RATE = 0.5;
 const H_PAD = 20;
 const SUBTITLE_GAP = 10;
@@ -50,11 +48,17 @@ function hapticImpact(style: Haptics.ImpactFeedbackStyle = Haptics.ImpactFeedbac
 export default function RestaurantDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const reduceMotion = useReduceMotion();
   const [tab, setTab] = useState<Tab>('legends');
   const scrollY = useSharedValue(0);
   const tabIndicator = useSharedValue(0);
+
+  // Responsive hero: capped at 90% width or 45% of screen height
+  const heroHeight = Math.min(width * 0.9, height * 0.45);
+  const collapseStart = heroHeight * 0.55;
+  const collapseEnd = heroHeight * 0.8;
 
   const { data: r, isLoading } = useQuery({
     queryKey: ['discovery', 'restaurant', id],
@@ -79,14 +83,14 @@ export default function RestaurantDetail() {
   });
 
   const heroOverlayTitleStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(scrollY.value, [0, COLLAPSE_START * 0.7], [1, 0], Extrapolation.CLAMP),
+    opacity: interpolate(scrollY.value, [0, collapseStart * 0.7], [1, 0], Extrapolation.CLAMP),
     transform: [
-      { translateY: interpolate(scrollY.value, [0, COLLAPSE_START], [0, -20], Extrapolation.CLAMP) },
+      { translateY: interpolate(scrollY.value, [0, collapseStart], [0, -20], Extrapolation.CLAMP) },
     ],
   }));
 
   const collapsedHeaderStyle = useAnimatedStyle(() => {
-    const p = interpolate(scrollY.value, [COLLAPSE_START, COLLAPSE_END], [0, 1], Extrapolation.CLAMP);
+    const p = interpolate(scrollY.value, [collapseStart, collapseEnd], [0, 1], Extrapolation.CLAMP);
     return {
       opacity: p,
       transform: [{ translateY: interpolate(p, [0, 1], [-COLLAPSED_HEADER_H, 0]) }],
@@ -115,7 +119,7 @@ export default function RestaurantDetail() {
       <View style={styles.root}>
         <View>
           {/* Hero — same height/width as loaded parallax hero */}
-          <View style={{ width, height: HERO_H, overflow: 'hidden' }}>
+          <View style={{ width, height: heroHeight, overflow: 'hidden' }}>
             <MotiView
               from={{ opacity: 0.45 }}
               animate={{ opacity: 0.75 }}
@@ -188,6 +192,7 @@ export default function RestaurantDetail() {
           onPress={() => { hapticImpact(); router.back(); }}
           style={({ pressed }) => [
             styles.floatingBack,
+            { top: insets.top + 12 },
             pressed && { opacity: 0.8, transform: [{ scale: 0.96 }] },
           ]}
         >
@@ -208,15 +213,15 @@ export default function RestaurantDetail() {
         contentContainerStyle={{ paddingBottom: space.xxl }}
       >
         {/* Parallax hero */}
-        <View style={{ width, height: HERO_H, overflow: 'hidden' }}>
+        <View style={{ width, height: heroHeight, overflow: 'hidden' }}>
           <Animated.View style={[StyleSheet.absoluteFill, heroStyle]}>
             <Image
               source={{ uri: r.heroImage }}
-              style={{ width, height: HERO_H }}
+              style={{ width, height: heroHeight }}
               contentFit="cover"
               transition={300}
             />
-            <View style={styles.heroGradient} pointerEvents="none" />
+            <View style={[styles.heroGradient, { height: heroHeight * 0.6 }]} pointerEvents="none" />
           </Animated.View>
 
           <Animated.View
@@ -352,6 +357,7 @@ export default function RestaurantDetail() {
         accessibilityLabel="Back"
         style={({ pressed }) => [
           styles.floatingBack,
+          { top: insets.top + 12 },
           pressed && { opacity: 0.8, transform: [{ scale: 0.96 }] },
         ]}
       >
@@ -359,8 +365,15 @@ export default function RestaurantDetail() {
       </Pressable>
 
       {/* Collapsed header */}
-      <Animated.View style={[styles.collapsedHeader, collapsedHeaderStyle]} pointerEvents="box-none">
-        <View style={styles.collapsedHeaderInner}>
+      <Animated.View
+        style={[
+          styles.collapsedHeader,
+          { paddingTop: insets.top },
+          collapsedHeaderStyle,
+        ]}
+        pointerEvents="box-none"
+      >
+        <View style={[styles.collapsedHeaderInner, { height: COLLAPSED_HEADER_H }]}>
           <Pressable
             onPress={() => { hapticImpact(); router.back(); }}
             style={({ pressed }) => [
@@ -418,7 +431,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    height: HERO_H * 0.6,
     backgroundColor: 'rgba(0,0,0,0.0)',
     // subtle linear-ish darken using shadow inset is not possible in RN;
     // ponytail: flat tint suffices for legibility, swap to expo-linear-gradient if needed
@@ -440,7 +452,6 @@ const styles = StyleSheet.create({
   // Floating back
   floatingBack: {
     position: 'absolute',
-    top: 56,
     left: 16,
     width: 40,
     height: 40,
@@ -527,13 +538,11 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    paddingTop: 44,
     backgroundColor: color.bg,
     borderBottomWidth: 1,
     borderBottomColor: color.border,
   },
   collapsedHeaderInner: {
-    height: COLLAPSED_HEADER_H,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
