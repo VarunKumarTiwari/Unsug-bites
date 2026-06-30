@@ -11,6 +11,7 @@ export interface FloatingFoodHeroProps {
   title: string;
   description: string;
   images: FloatingImageProps[];
+  action?: React.ReactNode;
   className?: string;
 }
 
@@ -55,12 +56,13 @@ export function FloatingFoodHero({
   title,
   description,
   images,
+  action,
   className,
 }: FloatingFoodHeroProps) {
   return (
     <section
       className={cn(
-        "relative w-full min-h-[50vh] sm:min-h-[60vh] lg:min-h-[80vh] flex items-center justify-center overflow-hidden bg-background py-16 sm:py-24 md:py-32",
+        "relative w-full min-h-[calc(100svh-4rem)] sm:min-h-[80vh] flex items-center justify-center overflow-hidden bg-background py-20 sm:py-24 md:py-32",
         className
       )}
     >
@@ -68,36 +70,41 @@ export function FloatingFoodHero({
         <Swirls />
       </div>
 
-      <div className="absolute inset-0 z-10 hidden sm:block">
+      {/* Floating food — decorative, on sm+ they sit in the wide side gutters. */}
+      <div className="absolute inset-0 z-10 hidden sm:block" aria-hidden="true">
         {images.map((image, index) => (
           <img
             key={index}
             src={image.src}
             alt=""
+            loading="lazy"
             className={cn("absolute object-contain", image.className)}
             style={{ animationDelay: `${index * 300}ms` }}
           />
         ))}
       </div>
 
-      <div className="absolute inset-0 z-10 sm:hidden">
+      {/* Mobile: the three hero dishes tucked into the corners, behind the
+          text, sized to frame the copy rather than collide with it. */}
+      <div className="absolute inset-0 z-10 sm:hidden" aria-hidden="true">
         {images.slice(0, 3).map((image, index) => (
           <img
             key={index}
             src={image.src}
             alt=""
+            loading="lazy"
             className={cn(
-              "absolute object-contain opacity-30",
-              index === 0 && "w-28 -top-2 -left-4 animate-float",
-              index === 1 && "w-24 top-0 -right-4 animate-float",
-              index === 2 && "w-24 bottom-4 right-0 animate-float"
+              "absolute object-contain animate-float",
+              index === 0 && "w-32 top-20 -left-8",
+              index === 1 && "w-24 top-16 -right-6",
+              index === 2 && "w-28 bottom-10 -right-8"
             )}
             style={{ animationDelay: `${index * 300}ms` }}
           />
         ))}
       </div>
 
-      <div className="relative z-20 container mx-auto px-6 text-center max-w-2xl">
+      <div className="relative z-20 container mx-auto px-6 text-center max-w-2xl flex flex-col items-center">
         <h1
           className="text-[clamp(2rem,6vw,3.75rem)] font-bold tracking-tight text-primary leading-[1.1]"
           style={{ fontFamily: "var(--font-fraunces)", textWrap: "balance" }}
@@ -105,11 +112,12 @@ export function FloatingFoodHero({
           {title}
         </h1>
         <p
-          className="mt-6 text-base sm:text-lg leading-7 sm:leading-8 text-muted-foreground max-w-lg mx-auto"
+          className="mt-5 text-base sm:text-lg leading-7 sm:leading-8 text-muted-foreground max-w-lg mx-auto"
           style={{ textWrap: "pretty" }}
         >
           {description}
         </p>
+        {action ? <div className="mt-9 sm:mt-10">{action}</div> : null}
       </div>
     </section>
   );

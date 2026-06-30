@@ -22,3 +22,5 @@ android/app/build
 .impeccable/
 skills-lock.json
 PRODUCT.md
+
+graphify-out/
