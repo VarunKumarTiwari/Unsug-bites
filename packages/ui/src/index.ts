@@ -13,3 +13,6 @@ export { Text } from './primitives/Text';
 export { Button } from './primitives/Button';
 export { Card } from './primitives/Card';
 export { Screen } from './primitives/Screen';
+
+export { Logo, BRAND } from './brand/Logo';
+export { LoadingScreen } from './brand/LoadingScreen';

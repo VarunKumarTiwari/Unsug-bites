@@ -1,7 +1,7 @@
 import React from 'react';
-import { View, Image } from 'react-native';
+import { View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Screen, Text, Button, color, space, radius } from '@unsung/ui';
+import { Screen, Text, Button, Logo, BRAND, color, space, radius } from '@unsung/ui';
 
 export default function Splash() {
   const router = useRouter();
@@ -10,10 +10,10 @@ export default function Splash() {
       <View style={{ flex: 1, justifyContent: 'space-between', paddingVertical: space.xl }}>
         <View style={{ alignItems: 'center', marginTop: space.xl }}>
           <Text variant="display" tone="primary">
-            Unsung
+            {BRAND.name}
           </Text>
-          <Text variant="display" tone="primary" style={{ marginTop: -6 }}>
-            Bites
+          <Text variant="body" tone="muted" style={{ marginTop: space.xs }}>
+            {BRAND.tagline}
           </Text>
         </View>
 
@@ -41,10 +41,7 @@ export default function Splash() {
             marginVertical: space.lg,
           }}
         >
-          {/* Replace with hand-drawn diner illustration. */}
-          <Text variant="h2" tone="muted">
-            🏪 Local Diner
-          </Text>
+          <Logo size={120} />
         </View>
 
         <Button label="Enable Location" onPress={() => router.replace({ pathname: '/(tabs)' })} />

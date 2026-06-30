@@ -66,3 +66,24 @@ Adding a new token (e.g., a `warning` color):
 3. It's immediately available everywhere
 
 When in doubt: if it's used in more than one app or could be, it goes in `packages/ui`.
+
+## Web error pages
+
+The web app ships a reusable `<ErrorPage>`
+(`apps/web/src/components/ui/error-page.tsx`) for any 404 / error route. To add a new
+error surface, create the Next file-convention file and just render it:
+
+```tsx
+// apps/web/src/app/error.tsx  (or a route-segment not-found.tsx)
+"use client";
+import { ErrorPage } from "@/components/ui/error-page";
+
+export default function Error() {
+  return <ErrorPage code="500" title="Something broke" description="..." />;
+}
+```
+
+The global 404 (`apps/web/src/app/not-found.tsx`) already does this. The OG/social image
+is generated at build time by `apps/web/src/app/opengraph-image.tsx` (`next/og`) — no
+static asset, no 404; add a sibling `opengraph-image.tsx` in any route folder to override
+it per-route.

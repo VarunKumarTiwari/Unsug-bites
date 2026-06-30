@@ -13,7 +13,7 @@
 
 export type Platform = "ios" | "android" | "desktop";
 
-const APP_SCHEME = process.env.NEXT_PUBLIC_APP_SCHEME ?? "unsung";
+const APP_SCHEME = process.env.NEXT_PUBLIC_APP_SCHEME ?? "shauni";
 const IOS_STORE =
   process.env.NEXT_PUBLIC_IOS_APP_URL ??
   "https://apps.apple.com/app/idTODO";
@@ -34,7 +34,7 @@ export function storeUrlFor(platform: Platform): string {
 
 /**
  * Build a deep link into the app. Path is optional — defaults to root.
- * Example: deepLink("/dish/123") → "unsung:///dish/123"
+ * Example: deepLink("/dish/123") → "shauni:///dish/123"
  */
 export function deepLink(path = "/"): string {
   const normalized = path.startsWith("/") ? path : `/${path}`;

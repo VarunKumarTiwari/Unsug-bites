@@ -1,9 +1,9 @@
 {
   "expo": {
-    "name": "Unsung Bites",
-    "slug": "unsung-bites",
+    "name": "Shauni",
+    "slug": "shauni",
     "version": "0.0.1",
-    "scheme": "unsung",
+    "scheme": "shauni",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "newArchEnabled": false,
@@ -28,7 +28,7 @@
       "expo-font",
       [
         "expo-camera",
-        { "cameraPermission": "Unsung Bites uses your camera to scan dishes for ingredient + nutrition info." }
+        { "cameraPermission": "Shauni uses your camera to scan dishes for ingredient + nutrition info." }
       ]
     ],
     "experiments": { "typedRoutes": true, "baseUrl": "/app" }

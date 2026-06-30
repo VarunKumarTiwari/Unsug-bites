@@ -5,6 +5,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { cn } from "@/lib/utils";
 import { detectPlatform, openApp, storeUrlFor } from "@/lib/smartAppLink";
+import { BRAND } from "@/components/ui/logo";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -52,20 +53,11 @@ const INJECTED_STYLES = `
   }
 
   .premium-depth-card {
-      background: linear-gradient(145deg, var(--color-olive) 0%, var(--color-ink) 100%);
+      background: var(--color-candlelit);
       box-shadow:
           0 40px 100px -20px rgba(0, 0, 0, 0.9),
-          0 20px 40px -20px rgba(0, 0, 0, 0.8),
-          inset 0 1px 2px rgba(255, 255, 255, 0.12),
-          inset 0 -2px 4px rgba(0, 0, 0, 0.8);
-      border: 1px solid rgba(255, 255, 255, 0.04);
+          0 20px 40px -20px rgba(0, 0, 0, 0.8);
       position: relative;
-  }
-
-  .card-sheen {
-      position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 50;
-      background: radial-gradient(800px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), var(--color-candlelit-soft) 0%, transparent 40%);
-      mix-blend-mode: screen; transition: opacity 0.3s ease;
   }
 
   .iphone-bezel {
@@ -101,11 +93,11 @@ const INJECTED_STYLES = `
   }
 
   .floating-ui-badge {
-      background: linear-gradient(135deg, rgba(253, 252, 247, 0.08) 0%, rgba(253, 252, 247, 0.01) 100%);
+      background: linear-gradient(135deg, color-mix(in srgb, var(--color-ink) 78%, transparent) 0%, color-mix(in srgb, var(--color-ink) 88%, transparent) 100%);
       backdrop-filter: blur(24px);
       -webkit-backdrop-filter: blur(24px);
       box-shadow:
-          0 0 0 1px rgba(253, 252, 247, 0.1),
+          0 0 0 1px rgba(253, 252, 247, 0.12),
           0 25px 50px -12px rgba(0, 0, 0, 0.8),
           inset 0 1px 1px rgba(253,252,247,0.2),
           inset 0 -1px 1px rgba(0,0,0,0.5);
@@ -129,27 +121,19 @@ const INJECTED_STYLES = `
       box-shadow: 0 0 0 1px rgba(28,28,30,0.1), 0 1px 2px rgba(28,28,30,0.1), inset 0 3px 6px rgba(28,28,30,0.1), inset 0 0 0 1px rgba(28,28,30,0.02);
   }
   .btn-modern-dark {
-      background: linear-gradient(180deg, var(--color-olive) 0%, color-mix(in srgb, var(--color-olive), black 30%) 100%);
+      background: linear-gradient(180deg, var(--color-candlelit) 0%, color-mix(in srgb, var(--color-candlelit), black 30%) 100%);
       color: var(--color-cream);
       box-shadow: 0 0 0 1px rgba(253,252,247,0.08), 0 2px 4px rgba(0,0,0,0.6), 0 12px 24px -4px rgba(0,0,0,0.9), inset 0 1px 1px rgba(253,252,247,0.12), inset 0 -3px 6px rgba(0,0,0,0.8);
   }
   .btn-modern-dark:hover {
       transform: translateY(-3px);
-      background: linear-gradient(180deg, color-mix(in srgb, var(--color-olive), white 10%) 0%, var(--color-olive) 100%);
+      background: linear-gradient(180deg, color-mix(in srgb, var(--color-candlelit), white 10%) 0%, var(--color-candlelit) 100%);
       box-shadow: 0 0 0 1px rgba(253,252,247,0.12), 0 6px 12px -2px rgba(0,0,0,0.7), 0 20px 32px -6px rgba(0,0,0,1), inset 0 1px 1px rgba(253,252,247,0.15), inset 0 -3px 6px rgba(0,0,0,0.8);
   }
   .btn-modern-dark:active {
       transform: translateY(1px);
-      background: color-mix(in srgb, var(--color-olive), black 30%);
+      background: color-mix(in srgb, var(--color-candlelit), black 30%);
       box-shadow: 0 0 0 1px rgba(253,252,247,0.05), inset 0 3px 8px rgba(0,0,0,0.9), inset 0 0 0 1px rgba(0,0,0,0.5);
-  }
-
-  .progress-ring {
-      transform: rotate(-90deg);
-      transform-origin: center;
-      stroke-dasharray: 402;
-      stroke-dashoffset: 402;
-      stroke-linecap: round;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -179,13 +163,13 @@ export interface CinematicHeroProps extends React.HTMLAttributes<HTMLDivElement>
 }
 
 export function CinematicHero({
-  brandName = "Unsung Bites",
+  brandName = BRAND.name,
   tagline1 = "Find the spots",
   tagline2 = "nobody's posted yet.",
-  cardHeading = "Discovery, not algorithms.",
+  cardHeading = BRAND.tagline,
   cardDescription = (
     <>
-      <span className="text-white font-semibold">Unsung Bites</span> helps you
+      <span className="text-white font-semibold">{BRAND.name}</span> helps you
       find hidden-gem restaurants, scan dishes with AI for ingredients and macros,
       leave honest reviews, and earn badges for exploring off-radar spots.
     </>
@@ -209,14 +193,7 @@ export function CinematicHero({
       cancelAnimationFrame(requestRef.current);
 
       requestRef.current = requestAnimationFrame(() => {
-        if (mainCardRef.current && mockupRef.current) {
-          const rect = mainCardRef.current.getBoundingClientRect();
-          const mouseX = e.clientX - rect.left;
-          const mouseY = e.clientY - rect.top;
-
-          mainCardRef.current.style.setProperty("--mouse-x", `${mouseX}px`);
-          mainCardRef.current.style.setProperty("--mouse-y", `${mouseY}px`);
-
+        if (mockupRef.current) {
           const xVal = (e.clientX / window.innerWidth - 0.5) * 2;
           const yVal = (e.clientY / window.innerHeight - 0.5) * 2;
 
@@ -357,11 +334,6 @@ export function CinematicHero({
           "-=1.5"
         )
         .to(
-          ".progress-ring",
-          { strokeDashoffset: 60, duration: 2, ease: "power3.inOut" },
-          "-=1.2"
-        )
-        .to(
           ".counter-val",
           {
             innerHTML: metricValue,
@@ -455,7 +427,6 @@ export function CinematicHero({
       {...props}
     >
       <style dangerouslySetInnerHTML={{ __html: INJECTED_STYLES }} />
-      <div className="film-grain" aria-hidden="true" />
       <div
         className="bg-grid-theme absolute inset-0 z-0 pointer-events-none opacity-50"
         aria-hidden="true"
@@ -557,13 +528,11 @@ export function CinematicHero({
           ref={mainCardRef}
           className="main-card premium-depth-card relative overflow-hidden gsap-reveal flex items-center justify-center pointer-events-auto w-[92vw] md:w-[85vw] h-[92vh] md:h-[85vh] rounded-[32px] md:rounded-[40px]"
         >
-          <div className="card-sheen" aria-hidden="true" />
-
           <div className="relative w-full h-full max-w-7xl mx-auto px-4 lg:px-12 flex flex-col justify-evenly lg:grid lg:grid-cols-3 items-center lg:gap-8 z-10 py-6 lg:py-0">
             {/* Brand Name */}
-            <div className="card-right-text gsap-reveal order-1 lg:order-3 flex justify-center lg:justify-end z-20 w-full">
+            <div className="card-right-text gsap-reveal order-1 lg:order-3 flex justify-center lg:justify-end z-20 w-full min-w-0">
               <h2
-                className="text-[clamp(2.5rem,8vw,6rem)] font-black uppercase tracking-tighter text-card-silver-matte lg:mt-0"
+                className="text-[clamp(2.25rem,7vw,5rem)] font-black uppercase tracking-tighter text-card-silver-matte lg:mt-0 lg:text-right leading-[0.95] break-words max-w-full"
                 style={{ fontFamily: "var(--font-fraunces)", textWrap: "balance" }}
               >
                 {brandName}
@@ -587,8 +556,8 @@ export function CinematicHero({
                   <div className="absolute top-[220px] -left-[3px] w-[3px] h-[45px] hardware-btn rounded-l-md z-0" aria-hidden="true" />
                   <div className="absolute top-[170px] -right-[3px] w-[3px] h-[70px] hardware-btn rounded-r-md z-0 scale-x-[-1]" aria-hidden="true" />
 
-                  {/* Screen */}
-                  <div className="absolute inset-[7px] bg-ink rounded-[2.5rem] overflow-hidden shadow-[inset_0_0_15px_rgba(0,0,0,1)] text-cream z-10">
+                  {/* Screen — light theme */}
+                  <div className="absolute inset-[7px] bg-cream rounded-[2.5rem] overflow-hidden shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--color-ink)_8%,transparent)] text-ink z-10">
                     <div className="absolute inset-0 screen-glare z-40 pointer-events-none" aria-hidden="true" />
 
                     {/* Dynamic Island */}
@@ -602,26 +571,26 @@ export function CinematicHero({
                       <div className="phone-widget flex justify-between items-start mb-2">
                         <div className="flex items-center gap-1.5">
                           <span className="w-1.5 h-1.5 rounded-full bg-candlelit shadow-[0_0_6px_var(--color-candlelit)]" aria-hidden="true" />
-                          <span className="text-[9px] text-cream/60 uppercase tracking-[0.18em] font-bold">
+                          <span className="text-[9px] text-ink/60 uppercase tracking-[0.18em] font-bold">
                             Nearby
                           </span>
                         </div>
-                        <svg className="w-3.5 h-3.5 text-cream/60" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <svg className="w-3.5 h-3.5 text-ink/50" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
                       </div>
 
                       {/* Title */}
                       <h4
-                        className="phone-widget text-candlelit text-[1.7rem] font-bold leading-[1.05] tracking-tight drop-shadow-md"
+                        className="phone-widget text-candlelit text-[1.7rem] font-bold leading-[1.05] tracking-tight"
                         style={{ fontFamily: "var(--font-fraunces)" }}
                       >
                         Hidden Gems
                       </h4>
                       <div className="phone-widget flex items-center gap-2 mt-1 mb-3">
-                        <span className="block w-4 h-px bg-cream/25" aria-hidden="true" />
-                        <span className="text-[10px] text-cream/55">
-                          <span className="counter-val text-cream font-semibold">0</span>
+                        <span className="block w-4 h-px bg-ink/20" aria-hidden="true" />
+                        <span className="text-[10px] text-ink/55">
+                          <span className="counter-val text-ink font-semibold">0</span>
                           <span> spots worth finding</span>
                         </span>
                       </div>
@@ -634,8 +603,8 @@ export function CinematicHero({
                             className={cn(
                               "shrink-0 px-2.5 py-1 rounded-full text-[9px] font-semibold tracking-tight border whitespace-nowrap",
                               i === 2
-                                ? "bg-candlelit/15 text-candlelit border-candlelit/30"
-                                : "text-cream/70 border-cream/15"
+                                ? "bg-candlelit/10 text-candlelit border-candlelit/30"
+                                : "text-ink/65 border-ink/15"
                             )}
                           >
                             {chip}
@@ -645,19 +614,19 @@ export function CinematicHero({
 
                       {/* TOP PICK eyebrow */}
                       <div className="phone-widget flex items-center gap-2 mb-2">
-                        <span className="text-[8px] text-cream/40 uppercase tracking-[0.2em] font-bold">
+                        <span className="text-[8px] text-ink/45 uppercase tracking-[0.2em] font-bold">
                           Top Pick
                         </span>
-                        <span className="flex-1 h-px bg-cream/10" aria-hidden="true" />
+                        <span className="flex-1 h-px bg-ink/10" aria-hidden="true" />
                       </div>
 
                       {/* Restaurant card */}
-                      <div className="phone-widget widget-depth rounded-2xl overflow-hidden">
+                      <div className="phone-widget bg-white rounded-2xl overflow-hidden border border-ink/8 shadow-[0_4px_12px_-4px_color-mix(in_srgb,var(--color-ink)_15%,transparent)]">
                         <div
                           className="relative h-[120px] w-full"
                           style={{
                             background:
-                              "linear-gradient(135deg, color-mix(in srgb, var(--color-candlelit), black 30%) 0%, color-mix(in srgb, var(--color-olive), black 20%) 100%)",
+                              "linear-gradient(135deg, color-mix(in srgb, var(--color-candlelit), black 20%) 0%, color-mix(in srgb, var(--color-ink), var(--color-candlelit) 25%) 100%)",
                           }}
                           aria-hidden="true"
                         >
@@ -676,44 +645,44 @@ export function CinematicHero({
                           </span>
                         </div>
                         <div className="px-3 py-2.5">
-                          <div className="h-3 w-28 rounded-full bg-cream/15 shadow-inner animate-pulse" aria-hidden="true" />
-                          <div className="h-2 w-40 rounded-full bg-cream/8 shadow-inner mt-2 animate-pulse" aria-hidden="true" />
+                          <div className="h-3 w-28 rounded-full bg-ink/12 animate-pulse" aria-hidden="true" />
+                          <div className="h-2 w-40 rounded-full bg-ink/7 mt-2 animate-pulse" aria-hidden="true" />
                           <div className="flex items-center gap-1.5 mt-2">
                             <span className="w-2.5 h-2.5 rounded-full bg-candlelit/40 animate-pulse" aria-hidden="true" />
-                            <span className="h-2 w-10 rounded-full bg-cream/12 animate-pulse" aria-hidden="true" />
-                            <span className="h-2 w-8 rounded-full bg-cream/8 animate-pulse" aria-hidden="true" />
+                            <span className="h-2 w-10 rounded-full bg-ink/10 animate-pulse" aria-hidden="true" />
+                            <span className="h-2 w-8 rounded-full bg-ink/7 animate-pulse" aria-hidden="true" />
                           </div>
                         </div>
                       </div>
 
                       <div className="phone-widget flex items-center gap-2 mt-2 mb-2">
-                        <span className="text-[8px] text-cream/35 uppercase tracking-[0.2em] font-bold">
+                        <span className="text-[8px] text-ink/40 uppercase tracking-[0.2em] font-bold">
                           More Nearby
                         </span>
-                        <span className="flex-1 h-px bg-cream/8" aria-hidden="true" />
-                        <span className="text-[9px] text-cream/40 font-bold">3</span>
+                        <span className="flex-1 h-px bg-ink/8" aria-hidden="true" />
+                        <span className="text-[9px] text-ink/45 font-bold">3</span>
                       </div>
 
-                      <div className="phone-widget widget-depth rounded-xl p-2.5 flex items-center gap-2.5">
+                      <div className="phone-widget bg-white rounded-xl p-2.5 flex items-center gap-2.5 border border-ink/8 shadow-[0_4px_12px_-4px_color-mix(in_srgb,var(--color-ink)_15%,transparent)]">
                         <div
                           className="w-11 h-11 rounded-lg shrink-0"
                           style={{
                             background:
-                              "linear-gradient(135deg, color-mix(in srgb, var(--color-olive), black 10%) 0%, color-mix(in srgb, var(--color-candlelit), black 40%) 100%)",
+                              "linear-gradient(135deg, color-mix(in srgb, var(--color-candlelit), black 40%) 0%, color-mix(in srgb, var(--color-ink), var(--color-candlelit) 15%) 100%)",
                           }}
                           aria-hidden="true"
                         />
                         <div className="flex-1 min-w-0">
-                          <div className="h-2 w-20 rounded-full bg-cream/15 animate-pulse" aria-hidden="true" />
-                          <div className="h-1.5 w-28 rounded-full bg-cream/8 mt-1.5 animate-pulse" aria-hidden="true" />
+                          <div className="h-2 w-20 rounded-full bg-ink/12 animate-pulse" aria-hidden="true" />
+                          <div className="h-1.5 w-28 rounded-full bg-ink/7 mt-1.5 animate-pulse" aria-hidden="true" />
                         </div>
                         <div className="flex items-center gap-1 shrink-0">
                           <span className="w-2 h-2 rounded-full bg-candlelit/40" aria-hidden="true" />
-                          <span className="h-1.5 w-5 rounded-full bg-cream/12 animate-pulse" aria-hidden="true" />
+                          <span className="h-1.5 w-5 rounded-full bg-ink/10 animate-pulse" aria-hidden="true" />
                         </div>
                       </div>
 
-                      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-[120px] h-[4px] bg-cream/20 rounded-full shadow-[0_1px_2px_rgba(0,0,0,0.5)]" />
+                      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-[120px] h-[4px] bg-ink/20 rounded-full" />
                     </div>
                   </div>
                 </div>
@@ -725,17 +694,17 @@ export function CinematicHero({
                   </div>
                   <div>
                     <p className="text-cream text-xs lg:text-sm font-bold tracking-tight">7-Day Streak</p>
-                    <p className="text-candlelit/50 text-[10px] lg:text-xs font-medium">Explorer badge earned</p>
+                    <p className="text-cream/75 text-[10px] lg:text-xs font-medium">Explorer badge earned</p>
                   </div>
                 </div>
 
                 <div className="floating-badge absolute flex bottom-12 lg:bottom-20 right-[-15px] lg:right-[-80px] floating-ui-badge rounded-xl lg:rounded-2xl p-3 lg:p-4 items-center gap-3 lg:gap-4 z-30">
-                  <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-gradient-to-b from-olive/30 to-olive/10 flex items-center justify-center border border-olive/30 shadow-inner">
+                  <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-gradient-to-b from-candlelit/30 to-candlelit/10 flex items-center justify-center border border-candlelit/30 shadow-inner">
                     <span className="text-base lg:text-lg drop-shadow-lg" aria-hidden="true">📸</span>
                   </div>
                   <div>
                     <p className="text-cream text-xs lg:text-sm font-bold tracking-tight">Dish Scanned</p>
-                    <p className="text-candlelit/50 text-[10px] lg:text-xs font-medium">340 cal · 12g protein</p>
+                    <p className="text-cream/75 text-[10px] lg:text-xs font-medium">340 cal · 12g protein</p>
                   </div>
                 </div>
               </div>
@@ -749,7 +718,7 @@ export function CinematicHero({
               >
                 {cardHeading}
               </h3>
-              <p className="hidden md:block text-cream/60 text-sm lg:text-base font-normal leading-relaxed mx-auto lg:mx-0 max-w-sm lg:max-w-none">
+              <p className="hidden md:block text-cream/80 text-sm lg:text-base font-normal leading-relaxed mx-auto lg:mx-0 max-w-sm lg:max-w-none">
                 {cardDescription}
               </p>
             </div>
