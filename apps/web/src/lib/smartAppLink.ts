@@ -70,13 +70,10 @@ export function deepLink(path = "/"): string {
  */
 export function openApp(opts: { platform: Platform; path?: string }): void {
   const { platform, path = "/" } = opts;
-  // Desktop -> standalone Expo web deploy. Mobile -> platform store.
-  // ponytail: post-launch, swap the mobile branch for a visibility-aware deep
-  // link (setTimeout + visibilitychange) once the app is on the stores.
-  if (platform === "desktop") {
-    const normalized = path.startsWith("/") ? path : `/${path}`;
-    window.location.href = `${WEB_APP_URL}${normalized === "/" ? "" : normalized}`;
-    return;
-  }
-  window.location.href = storeUrlFor(platform);
+
+  // All platforms -> standalone Expo web deploy (open in browser).
+  // ponytail: post-launch, add a mobile branch that deep-links into the
+  // native app (visibilitychange + setTimeout store fallback) once published.
+  const normalized = path.startsWith("/") ? path : `/${path}`;
+  window.location.href = `${WEB_APP_URL}${normalized === "/" ? "" : normalized}`;
 }
