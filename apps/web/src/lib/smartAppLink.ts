@@ -14,6 +14,9 @@
 export type Platform = "ios" | "android" | "desktop";
 
 const APP_SCHEME = process.env.NEXT_PUBLIC_APP_SCHEME ?? "shauni";
+const WEB_APP_URL =
+  process.env.NEXT_PUBLIC_WEB_APP_URL ??
+  "https://unsung-bites-app.vercel.app";
 const IOS_STORE =
   process.env.NEXT_PUBLIC_IOS_APP_URL ??
   "https://apps.apple.com/app/idTODO";
@@ -67,12 +70,12 @@ export function deepLink(path = "/"): string {
  */
 export function openApp(opts: { platform: Platform; path?: string }): void {
   const { platform, path = "/" } = opts;
-  // Desktop -> Expo web export at /app. Mobile -> platform store.
+  // Desktop -> standalone Expo web deploy. Mobile -> platform store.
   // ponytail: post-launch, swap the mobile branch for a visibility-aware deep
   // link (setTimeout + visibilitychange) once the app is on the stores.
   if (platform === "desktop") {
     const normalized = path.startsWith("/") ? path : `/${path}`;
-    window.location.href = `/app${normalized === "/" ? "" : normalized}`;
+    window.location.href = `${WEB_APP_URL}${normalized === "/" ? "" : normalized}`;
     return;
   }
   window.location.href = storeUrlFor(platform);
