@@ -30,6 +30,7 @@ import { RestaurantCard } from '@/components/restaurant/RestaurantCard';
 import { users, gamification, discovery } from '@/lib/api';
 import { useAuthStore } from '@/lib/store/auth';
 import { useReduceMotion } from '@/hooks/useReduceMotion';
+import { useNavChrome, updateNavChrome } from '@/lib/navChrome';
 import type { Badge as BadgeType, RestaurantSummary } from '@unsung/contracts';
 
 // ── Scroll animation ranges ──
@@ -52,6 +53,7 @@ export default function Profile() {
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
   const toggle = useAuthStore((s) => s.toggle);
   const reduceMotion = useReduceMotion();
+  const navChrome = useNavChrome();
   const scrollY = useSharedValue(0);
   const insets = useSafeAreaInsets();
   const [refreshing, setRefreshing] = useState(false);
@@ -73,6 +75,7 @@ export default function Profile() {
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (e) => {
       scrollY.value = e.contentOffset.y;
+      updateNavChrome(navChrome, e.contentOffset.y);
     },
   });
 
@@ -393,7 +396,7 @@ export default function Profile() {
 
 // ── Styles ──
 const styles = StyleSheet.create({
-  scrollContent: { paddingBottom: space.xxl },
+  scrollContent: { paddingBottom: space.xxl + space.xxl },
 
   // Eyebrow
   eyebrowRow: { flexDirection: 'row', alignItems: 'center' },

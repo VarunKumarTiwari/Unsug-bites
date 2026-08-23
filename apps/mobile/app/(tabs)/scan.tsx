@@ -8,6 +8,7 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
+  useAnimatedScrollHandler,
   withRepeat,
   withTiming,
   withSpring,
@@ -28,6 +29,7 @@ import { StarRating } from '@/components/review/StarRating';
 import { VibeChip } from '@/components/feed/VibeChip';
 import { scan, nutrition } from '@/lib/api';
 import { useReduceMotion } from '@/hooks/useReduceMotion';
+import { useNavChrome, updateNavChrome } from '@/lib/navChrome';
 import type { ScanResult, NutritionFact } from '@unsung/contracts';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -35,6 +37,7 @@ const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 type Phase = 'preview' | 'scanning' | 'result';
 
 // ── Layout constants ──
+const NAV_CLEARANCE = 74; // lift bottom controls clear of the floating pill nav
 const SHUTTER_SIZE = 76;
 const SHUTTER_RING_WIDTH = 4;
 const ROUND_BTN = 40;
@@ -135,7 +138,7 @@ export default function Scan() {
       {phase === 'preview' && (
         <Animated.View
           entering={reduceMotion ? undefined : FadeIn.duration(300)}
-          style={[styles.previewBottom, { bottom: insets.bottom + 16 }]}
+          style={[styles.previewBottom, { bottom: insets.bottom + 16 + NAV_CLEARANCE }]}
         >
           <View style={styles.eyebrowRow}>
             <View style={styles.eyebrowDotLight} />
@@ -165,7 +168,7 @@ export default function Scan() {
       {phase === 'scanning' && (
         <Animated.View
           entering={reduceMotion ? undefined : FadeIn.duration(220)}
-          style={[styles.scanningBottom, { bottom: insets.bottom + 16 }]}
+          style={[styles.scanningBottom, { bottom: insets.bottom + 16 + NAV_CLEARANCE }]}
         >
           <ShimmerSweep reduceMotion={reduceMotion} />
           <View style={styles.scanningCaptionRow}>
@@ -261,6 +264,13 @@ function ResultSheet({
   const [expanded, setExpanded] = useState(false);
   const translateY = useSharedValue(SNAP_HALF);
   const context = useSharedValue(0);
+  const navChrome = useNavChrome();
+
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (e) => {
+      updateNavChrome(navChrome, e.contentOffset.y);
+    },
+  });
 
   // Form state
   const [restaurant, setRestaurant] = useState('');
@@ -361,8 +371,10 @@ function ResultSheet({
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={{ flex: 1 }}
         >
-        <ScrollView
+        <Animated.ScrollView
           scrollEnabled={expanded}
+          onScroll={scrollHandler}
+          scrollEventThrottle={16}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.sheetScroll}
           keyboardShouldPersistTaps="handled"
@@ -494,7 +506,7 @@ function ResultSheet({
               />
             </View>
           )}
-        </ScrollView>
+        </Animated.ScrollView>
         </KeyboardAvoidingView>
       </Animated.View>
     </GestureDetector>
