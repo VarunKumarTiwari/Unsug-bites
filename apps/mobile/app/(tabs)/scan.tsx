@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Pressable, ScrollView, TextInput, KeyboardAvoidingView, StyleSheet, Platform, Dimensions } from 'react-native';
+import { View, Pressable, ScrollView, TextInput, KeyboardAvoidingView, StyleSheet, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Camera as CameraIcon, ChevronLeft, X, Check, MapPin } from 'lucide-react-native';
@@ -30,8 +30,6 @@ import { scan, nutrition } from '@/lib/api';
 import { useReduceMotion } from '@/hooks/useReduceMotion';
 import type { ScanResult, NutritionFact } from '@unsung/contracts';
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
-
 type Phase = 'preview' | 'scanning' | 'result';
 
 // ── Layout constants ──
@@ -52,6 +50,9 @@ export default function Scan() {
   const [phase, setPhase] = useState<Phase>('preview');
   const [result, setResult] = useState<ScanResult | null>(null);
   const [nut, setNut] = useState<NutritionFact | null>(null);
+  // Measured height of the tab-screen content area (excludes the tab bar) —
+  // Dimensions.get('window') includes it, which pushed sheet content behind the tabs.
+  const [containerH, setContainerH] = useState(0);
 
   // Shutter ring pulse
   const ringScale = useSharedValue(1);
@@ -108,7 +109,7 @@ export default function Scan() {
   }
 
   return (
-    <View style={styles.root}>
+    <View style={styles.root} onLayout={(e) => setContainerH(e.nativeEvent.layout.height)}>
       {/* Mock camera viewfinder — real expo-camera mounts here. */}
       <Image
         source={{ uri: 'https://images.unsplash.com/photo-1612874742237-6526221588e3?w=1600' }}
@@ -178,11 +179,12 @@ export default function Scan() {
       )}
 
       {/* Result sheet */}
-      {phase === 'result' && result && nut && (
+      {phase === 'result' && result && nut && containerH > 0 && (
         <ResultSheet
           result={result}
           nutrition={nut}
           reduceMotion={reduceMotion}
+          containerH={containerH}
         />
       )}
     </View>
@@ -239,10 +241,10 @@ function PulsingDot({ reduceMotion }: { reduceMotion: boolean }) {
 }
 
 // ── Result sheet — expands in place, gesture-dismissable ──
-// ponytail: snaps sheet so button + content fill visible area above tab bar
-const SNAP_HALF = SCREEN_HEIGHT * 0.50;
-const SNAP_FULL = SCREEN_HEIGHT * 0.12;
-const SNAP_DISMISSED = SCREEN_HEIGHT;
+// Snap points are fractions of the *measured* container (tab-screen area,
+// tab bar excluded) so the sheet lands consistently across devices.
+const SNAP_HALF_FRACTION = 0.42;
+const SNAP_FULL_FRACTION = 0.08;
 const SHEET_SPRING = { damping: 22, stiffness: 160, mass: 1 };
 
 const CUISINES = ['Italian', 'Japanese', 'Mexican', 'Indian', 'French', 'Thai', 'American', 'Other'];
@@ -253,13 +255,25 @@ function ResultSheet({
   result,
   nutrition: nut,
   reduceMotion,
+  containerH,
 }: {
   result: ScanResult;
   nutrition: NutritionFact;
   reduceMotion: boolean;
+  containerH: number;
 }) {
+  const SNAP_FULL = containerH * SNAP_FULL_FRACTION;
   const [expanded, setExpanded] = useState(false);
-  const translateY = useSharedValue(SNAP_HALF);
+  // Measured heights of the handle area and the collapsed content, so the
+  // collapsed snap hugs the content — a fixed fraction leaves a dead white
+  // band under the button on tall screens.
+  const [handleH, setHandleH] = useState(0);
+  const [collapsedContentH, setCollapsedContentH] = useState(0);
+  const SNAP_HALF =
+    handleH > 0 && collapsedContentH > 0
+      ? Math.max(containerH - handleH - collapsedContentH, SNAP_FULL)
+      : containerH * SNAP_HALF_FRACTION;
+  const translateY = useSharedValue(containerH);
   const context = useSharedValue(0);
 
   // Form state
@@ -275,9 +289,12 @@ function ResultSheet({
   const [notes, setNotes] = useState('');
 
   useEffect(() => {
-    // Initial slide-up entrance
-    translateY.value = withSpring(SNAP_HALF, SHEET_SPRING);
-  }, [translateY]);
+    // Entrance slide-up, then retarget once the collapsed content is measured.
+    if (!expanded) {
+      translateY.value = withSpring(SNAP_HALF, SHEET_SPRING);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [SNAP_HALF]);
 
   function animateTo(target: number) {
     translateY.value = reduceMotion
@@ -351,11 +368,17 @@ function ResultSheet({
   }));
 
   return (
-    <GestureDetector gesture={gesture}>
-      <Animated.View style={[styles.sheet, sheetStyle]}>
-        <View style={styles.sheetHandleArea}>
+    <Animated.View style={[styles.sheet, { height: containerH }, sheetStyle]}>
+      {/* Pan lives on the handle only — on the whole sheet it swallows the
+          form's scroll gestures on Android and Save Review is unreachable. */}
+      <GestureDetector gesture={gesture}>
+        <View
+          style={styles.sheetHandleArea}
+          onLayout={(e) => setHandleH(e.nativeEvent.layout.height)}
+        >
           <View style={styles.sheetHandle} />
         </View>
+      </GestureDetector>
 
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -364,10 +387,18 @@ function ResultSheet({
         <ScrollView
           scrollEnabled={expanded}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.sheetScroll}
+          // Bottom padding = the sheet's residual offset below the container
+          // (SNAP_FULL) so the last field/button clears the tab bar exactly.
+          contentContainerStyle={[styles.sheetScroll, { paddingBottom: SNAP_FULL + space.lg }]}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Scan info — always visible */}
+          {/* Scan info — always visible. Measured (collapsed only) so the
+              half snap shows exactly this much, no dead band underneath. */}
+          <View
+            onLayout={(e) => {
+              if (!expanded) setCollapsedContentH(e.nativeEvent.layout.height + space.lg);
+            }}
+          >
           <View style={styles.eyebrowRow}>
             <View style={styles.eyebrowDot} />
             <Text variant="labelStrong" tone="muted" style={styles.eyebrowText}>AI DETECTED</Text>
@@ -406,6 +437,7 @@ function ResultSheet({
           {!expanded && (
             <Button label="Log & Submit Review" onPress={handleExpand} style={styles.submitBtn} />
           )}
+          </View>
 
           {/* Review form — visible when expanded */}
           {expanded && (
@@ -496,8 +528,7 @@ function ResultSheet({
           )}
         </ScrollView>
         </KeyboardAvoidingView>
-      </Animated.View>
-    </GestureDetector>
+    </Animated.View>
   );
 }
 
@@ -616,14 +647,12 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    height: SCREEN_HEIGHT,
     backgroundColor: color.surface,
     borderTopLeftRadius: radius.xl,
     borderTopRightRadius: radius.xl,
   },
   sheetScroll: {
     paddingHorizontal: 20,
-    paddingBottom: 150,
   },
   sheetHandleArea: {
     paddingTop: 14,

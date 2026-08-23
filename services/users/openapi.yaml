@@ -15,6 +15,21 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/User' }
+    patch:
+      summary: Update own profile (self only)
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UserPatch' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/User' }
 
 components:
   schemas:
@@ -32,3 +47,15 @@ components:
         dietary:
           type: array
           items: { type: string, example: 'vegetarian' }
+
+    UserPatch:
+      type: object
+      properties:
+        displayName: { type: string, minLength: 1, maxLength: 80 }
+        avatarUrl: { type: string, format: uri }
+        preferredVibes:
+          type: array
+          items: { type: string }
+        dietary:
+          type: array
+          items: { type: string }

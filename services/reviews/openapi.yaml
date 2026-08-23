@@ -5,6 +5,16 @@ info:
 
 paths:
   /reviews:
+    get:
+      summary: List the authenticated user's reviews
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Review' }
     post:
       summary: Submit a dish review
       requestBody:
@@ -23,14 +33,33 @@ components:
   schemas:
     ReviewInput:
       type: object
-      required: [userId, restaurantId, dishName, rating]
+      required: [userId, restaurantId, restaurantName, location, cuisine, dishName, ingredients, rating, tasteRating, presentationRating, portionSize, orderAgain, occasion]
       properties:
-        userId: { type: string }
+        userId: { type: string, description: 'Ignored by the server; identity comes from the JWT.' }
         restaurantId: { type: string }
+        restaurantName: { type: string }
+        location: { type: string }
+        cuisine: { type: string }
         dishName: { type: string }
+        ingredients:
+          type: array
+          items: { type: string }
+        nutrition:
+          type: object
+          nullable: true
+          properties:
+            calories: { type: number }
+            protein_g: { type: number }
+            carbs_g: { type: number }
         rating: { type: integer, minimum: 1, maximum: 5 }
+        tasteRating: { type: integer, minimum: 1, maximum: 5 }
+        presentationRating: { type: integer, minimum: 1, maximum: 5 }
+        portionSize: { type: string, enum: ['Small', 'Just Right', 'Generous'] }
+        orderAgain: { type: boolean }
+        occasion: { type: string, enum: ['Solo', 'Date', 'Friends', 'Business'] }
         note: { type: string }
         scanId: { type: string, nullable: true }
+        photoUrl: { type: string, nullable: true }
 
     Review:
       allOf:

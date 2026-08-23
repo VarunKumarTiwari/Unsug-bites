@@ -6,11 +6,9 @@ import {
   Platform,
   RefreshControl,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { useQuery } from '@tanstack/react-query';
 import Animated, {
-  useAnimatedScrollHandler,
   useSharedValue,
   useAnimatedStyle,
   interpolate,
@@ -53,7 +51,6 @@ export default function Profile() {
   const toggle = useAuthStore((s) => s.toggle);
   const reduceMotion = useReduceMotion();
   const scrollY = useSharedValue(0);
-  const insets = useSafeAreaInsets();
   const [refreshing, setRefreshing] = useState(false);
 
   const { data: me } = useQuery({
@@ -70,11 +67,13 @@ export default function Profile() {
     queryFn: () => discovery.getNearby(40.68, -74.0),
   });
 
-  const scrollHandler = useAnimatedScrollHandler({
-    onScroll: (e) => {
-      scrollY.value = e.contentOffset.y;
-    },
-  });
+  // Plain JS onScroll (not useAnimatedScrollHandler): on Android the Reanimated
+  // worklet handler attaches to the RefreshControl wrapper's view tag and never
+  // fires, so the collapsed header stayed hidden. The standard onScroll prop
+  // binds to the real scroll node and fires reliably.
+  const onScroll = (e: { nativeEvent: { contentOffset: { y: number } } }) => {
+    scrollY.value = e.nativeEvent.contentOffset.y;
+  };
 
   const heroStyle = useAnimatedStyle(() => ({
     opacity: interpolate(scrollY.value, [0, HERO_COLLAPSE_START], [1, 0.6], Extrapolation.CLAMP),
@@ -211,7 +210,7 @@ export default function Profile() {
   return (
     <Screen padded={false}>
       <Animated.ScrollView
-        onScroll={scrollHandler}
+        onScroll={onScroll}
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
@@ -371,7 +370,10 @@ export default function Profile() {
       <Animated.View
         style={[
           styles.collapsedHeader,
-          { height: COLLAPSED_HEADER_H + insets.top, paddingTop: insets.top },
+          // No insets.top — the header renders inside Screen's SafeAreaView,
+          // so top:0 is already below the notch. Adding it again double-counted
+          // the inset and left a dead band above the pinned title.
+          { height: COLLAPSED_HEADER_H },
           collapsedHeaderStyle,
         ]}
         pointerEvents="none"

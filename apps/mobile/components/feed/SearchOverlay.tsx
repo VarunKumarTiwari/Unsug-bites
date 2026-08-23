@@ -16,10 +16,9 @@ interface Props {
   query: string;
   onChangeQuery: (q: string) => void;
   onClose: () => void;
-  insetTop: number;
 }
 
-export function SearchOverlay({ visible, query, onChangeQuery, onClose, insetTop }: Props) {
+export function SearchOverlay({ visible, query, onChangeQuery, onClose }: Props) {
   const inputRef = useRef<TextInput>(null);
   const backdropOpacity = useSharedValue(visible ? 1 : 0);
   const backdropAnimStyle = useAnimatedStyle(() => ({ opacity: backdropOpacity.value }));
@@ -44,7 +43,7 @@ export function SearchOverlay({ visible, query, onChangeQuery, onClose, insetTop
         <Animated.View
           entering={SlideInUp.duration(280).springify().damping(22).stiffness(200)}
           exiting={SlideOutUp.duration(220).easing(Easing.in(Easing.cubic))}
-          style={[styles.panel, { paddingTop: insetTop + 12 }]}
+          style={styles.panel}
         >
           <View style={styles.searchRow}>
             <Search size={15} color={color.text.muted} strokeWidth={2} />
@@ -85,6 +84,10 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: color.border,
     paddingHorizontal: 20,
+    // No safe-area inset here — the overlay renders inside Screen's SafeAreaView,
+    // so top:0 is already below the notch. Adding insetTop double-counted it and
+    // left a dead band above the search bar.
+    paddingTop: 12,
     paddingBottom: 14,
     shadowColor: '#1C1C1E',
     shadowOpacity: 0.08,
