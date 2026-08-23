@@ -7,6 +7,7 @@ import { Image } from 'expo-image';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
+  useAnimatedScrollHandler,
   withRepeat,
   withTiming,
   withSpring,
@@ -30,6 +31,7 @@ type Phase = 'preview' | 'scanning' | 'result';
 const MOCK_PHOTO = 'https://images.unsplash.com/photo-1612874742237-6526221588e3?w=1600';
 
 // ── Layout constants ──
+const NAV_CLEARANCE = 74; // lift bottom controls clear of the floating pill nav
 const SHUTTER_SIZE = 76;
 const SHUTTER_RING_WIDTH = 4;
 const ROUND_BTN = 40;
@@ -141,7 +143,7 @@ export default function Scan() {
       {phase === 'preview' && (
         <Animated.View
           entering={reduceMotion ? undefined : FadeIn.duration(300)}
-          style={[styles.previewBottom, { bottom: insets.bottom + 16 }]}
+          style={[styles.previewBottom, { bottom: insets.bottom + 16 + NAV_CLEARANCE }]}
         >
           <View style={styles.eyebrowRow}>
             <View style={styles.eyebrowDotLight} />
@@ -171,7 +173,7 @@ export default function Scan() {
       {phase === 'scanning' && (
         <Animated.View
           entering={reduceMotion ? undefined : FadeIn.duration(220)}
-          style={[styles.scanningBottom, { bottom: insets.bottom + 16 }]}
+          style={[styles.scanningBottom, { bottom: insets.bottom + 16 + NAV_CLEARANCE }]}
         >
           <ShimmerSweep reduceMotion={reduceMotion} />
           <View style={styles.scanningCaptionRow}>
@@ -187,7 +189,7 @@ export default function Scan() {
       {phase === 'result' && result && (
         <Animated.View
           entering={reduceMotion ? undefined : FadeInUp.duration(320)}
-          style={[styles.resultCardWrap, { bottom: insets.bottom + 16 }]}
+          style={[styles.resultCardWrap, { bottom: insets.bottom + 16 + NAV_CLEARANCE }]}
         >
           <Pressable
             onPress={openDetail}
