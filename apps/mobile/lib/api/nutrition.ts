@@ -1,8 +1,11 @@
 import type { NutritionFact } from '@unsung/contracts';
 import carbonara from '@/lib/mock/nutrition_carbonara_truffle.json';
-import { fakeLatency } from './_latency';
+import { apiFetch, withMock } from './_client';
 
-export async function getNutrition(_lookupKey: string): Promise<NutritionFact> {
-  await fakeLatency();
-  return carbonara as NutritionFact;
+export async function getNutrition(lookupKey: string): Promise<NutritionFact> {
+  return withMock(
+    'nutrition.getNutrition',
+    () => apiFetch<NutritionFact>(`/nutrition/${encodeURIComponent(lookupKey)}`),
+    () => carbonara as NutritionFact,
+  );
 }

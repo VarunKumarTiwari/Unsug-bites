@@ -1,8 +1,11 @@
 import type { Recommendation } from '@unsung/contracts';
 import alex from '@/lib/mock/recommendations_u_alex.json';
-import { fakeLatency } from './_latency';
+import { apiFetch, withMock } from './_client';
 
-export async function forUser(_userId: string): Promise<Recommendation[]> {
-  await fakeLatency();
-  return alex as Recommendation[];
+export async function forUser(userId: string): Promise<Recommendation[]> {
+  return withMock(
+    'recommendations.forUser',
+    () => apiFetch<Recommendation[]>(`/recommendations/${encodeURIComponent(userId)}`),
+    () => alex as Recommendation[],
+  );
 }

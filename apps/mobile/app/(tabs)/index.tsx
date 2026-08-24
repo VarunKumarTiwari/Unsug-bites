@@ -18,7 +18,6 @@ import Animated, {
 import { useQuery } from '@tanstack/react-query';
 import { Search, AlertCircle, RefreshCw } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Screen, Text, color, radius, space, spring } from '@unsung/ui';
 import { RestaurantCard } from '@/components/restaurant/RestaurantCard';
 import { FauxMap } from '@/components/map/FauxMap';
@@ -80,7 +79,6 @@ export default function Home() {
   const contentTranslateX = useSharedValue(0);
   const contentOpacity = useSharedValue(1);
   const scrollY = useSharedValue(0);
-  const insets = useSafeAreaInsets();
   const reduceMotion = useReduceMotion();
   const navChrome = useNavChrome();
   const listRef = useRef<FlatList<RestaurantSummary>>(null);
@@ -384,7 +382,10 @@ export default function Home() {
       <Animated.View
         style={[
           styles.collapsedHeader,
-          { height: COLLAPSED_HEADER_H + insets.top, paddingTop: insets.top },
+          // No insets.top here — the header already renders inside Screen's
+          // SafeAreaView, so top:0 is below the notch. Adding the inset again
+          // double-counted it and left a dead band above the pinned title.
+          { height: COLLAPSED_HEADER_H },
           collapsedHeaderStyle,
         ]}
         pointerEvents={chipsStuck ? 'auto' : 'none'}
@@ -410,7 +411,7 @@ export default function Home() {
 
       {/* Sticky vibe chips */}
       <Animated.View
-        style={[styles.stickyChipsBar, { top: COLLAPSED_HEADER_H + insets.top }, stickyChipsStyle]}
+        style={[styles.stickyChipsBar, { top: COLLAPSED_HEADER_H }, stickyChipsStyle]}
         pointerEvents={chipsStuck ? 'auto' : 'none'}
       >
         <ScrollView
@@ -429,7 +430,6 @@ export default function Home() {
         query={searchQuery}
         onChangeQuery={setSearchQuery}
         onClose={() => setSearchOverlayOpen(false)}
-        insetTop={insets.top}
       />
     </Screen>
   );
@@ -442,7 +442,7 @@ const styles = StyleSheet.create({
   // Hero
   heroBlock: {
     paddingHorizontal: H_PAD,
-    paddingTop: space.lg + 4,
+    paddingTop: space.sm + 4,
     paddingBottom: space.lg - 2,
     borderBottomWidth: 1,
     borderBottomColor: color.border,

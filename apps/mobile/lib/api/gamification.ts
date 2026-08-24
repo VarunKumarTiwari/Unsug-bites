@@ -1,8 +1,11 @@
 import type { UserGameState } from '@unsung/contracts';
 import alex from '@/lib/mock/gamification_u_alex.json';
-import { fakeLatency } from './_latency';
+import { apiFetch, withMock } from './_client';
 
-export async function getState(_userId: string): Promise<UserGameState> {
-  await fakeLatency();
-  return alex as UserGameState;
+export async function getState(userId: string): Promise<UserGameState> {
+  return withMock(
+    'gamification.getState',
+    () => apiFetch<UserGameState>(`/gamification/${encodeURIComponent(userId)}`),
+    () => alex as UserGameState,
+  );
 }

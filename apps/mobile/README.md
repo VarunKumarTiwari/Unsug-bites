@@ -11,6 +11,15 @@ npm run mobile         # opens Expo Dev Tools — press i / a / w
 npm run mobile:web     # straight to browser
 ```
 
+## API config
+
+Data comes from the backend via `lib/api/*` (single `apiFetch` seam in `lib/api/_client.ts`).
+Each client falls back to its bundled mock in `lib/mock/` if the call fails, so the
+UI never breaks while the backend stabilizes. Configure with env vars (see `.env.example`):
+
+- `EXPO_PUBLIC_API_URL` — backend base URL (default `https://unsung-bites-api.onrender.com`).
+- `EXPO_PUBLIC_USE_MOCK=1` — force mock data, never hit the network.
+
 ## Structure
 
 ```

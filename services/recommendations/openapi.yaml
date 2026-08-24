@@ -18,10 +18,14 @@ paths:
             application/json:
               schema:
                 type: array
-                items:
-                  type: object
-                  required: [restaurantId, reason, score]
-                  properties:
-                    restaurantId: { type: string }
-                    reason: { type: string, example: 'You loved 2 cozy Italian spots' }
-                    score: { type: number }
+                items: { $ref: '#/components/schemas/Recommendation' }
+
+components:
+  schemas:
+    Recommendation:
+      type: object
+      required: [restaurantId, reason, score]
+      properties:
+        restaurantId: { type: string }
+        reason: { type: string, example: 'You loved 2 cozy Italian spots' }
+        score: { type: number }
