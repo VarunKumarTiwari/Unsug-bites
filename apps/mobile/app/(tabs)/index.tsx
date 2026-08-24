@@ -23,6 +23,7 @@ import { RestaurantCard } from '@/components/restaurant/RestaurantCard';
 import { FauxMap } from '@/components/map/FauxMap';
 import { discovery } from '@/lib/api';
 import { useReduceMotion } from '@/hooks/useReduceMotion';
+import { useNavChrome, updateNavChrome } from '@/lib/navChrome';
 import type { RestaurantSummary } from '@unsung/contracts';
 
 import { SearchOverlay } from '@/components/feed/SearchOverlay';
@@ -63,7 +64,7 @@ const H_PAD = 20;              // horizontal page inset
 const CARD_GAP = space.md;     // 12 — gap between grid cards
 const CHIP_GAP = 7;            // gap between vibe chips
 const MAP_H = 420;             // map viewfinder height
-const LIST_BOTTOM_PAD = 48;    // FlatList content bottom padding
+const LIST_BOTTOM_PAD = 120;   // clears the floating pill nav (absolute, reserves no layout space)
 const RETRY_H_PAD = 22;        // retry button horizontal padding
 const RETRY_ICON_GAP = 7;      // gap between retry icon and label
 const SUBTITLE_GAP = 10;       // gap between subtitle rule and text
@@ -79,6 +80,7 @@ export default function Home() {
   const contentOpacity = useSharedValue(1);
   const scrollY = useSharedValue(0);
   const reduceMotion = useReduceMotion();
+  const navChrome = useNavChrome();
   const listRef = useRef<FlatList<RestaurantSummary>>(null);
   const navigation = useNavigation();
 
@@ -129,6 +131,7 @@ export default function Home() {
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
       scrollY.value = event.contentOffset.y;
+      updateNavChrome(navChrome, event.contentOffset.y);
     },
   });
 

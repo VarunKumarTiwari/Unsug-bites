@@ -28,6 +28,7 @@ import { RestaurantCard } from '@/components/restaurant/RestaurantCard';
 import { users, gamification, discovery } from '@/lib/api';
 import { useAuthStore } from '@/lib/store/auth';
 import { useReduceMotion } from '@/hooks/useReduceMotion';
+import { useNavChrome, updateNavChrome } from '@/lib/navChrome';
 import type { Badge as BadgeType, RestaurantSummary } from '@unsung/contracts';
 
 // ── Scroll animation ranges ──
@@ -50,6 +51,7 @@ export default function Profile() {
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
   const toggle = useAuthStore((s) => s.toggle);
   const reduceMotion = useReduceMotion();
+  const navChrome = useNavChrome();
   const scrollY = useSharedValue(0);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -72,7 +74,9 @@ export default function Profile() {
   // fires, so the collapsed header stayed hidden. The standard onScroll prop
   // binds to the real scroll node and fires reliably.
   const onScroll = (e: { nativeEvent: { contentOffset: { y: number } } }) => {
-    scrollY.value = e.nativeEvent.contentOffset.y;
+    const y = e.nativeEvent.contentOffset.y;
+    scrollY.value = y;
+    updateNavChrome(navChrome, y);
   };
 
   const heroStyle = useAnimatedStyle(() => ({
@@ -395,7 +399,7 @@ export default function Profile() {
 
 // ── Styles ──
 const styles = StyleSheet.create({
-  scrollContent: { paddingBottom: space.xxl },
+  scrollContent: { paddingBottom: space.xxl + space.xxl },
 
   // Eyebrow
   eyebrowRow: { flexDirection: 'row', alignItems: 'center' },

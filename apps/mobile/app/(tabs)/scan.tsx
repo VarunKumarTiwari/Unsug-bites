@@ -1,38 +1,37 @@
-import React, { useState, useEffect } from 'react';
-import { View, Pressable, ScrollView, TextInput, KeyboardAvoidingView, StyleSheet, Platform } from 'react-native';
+ import React, { useState, useEffect, useCallback } from 'react';
+import { View, Pressable, StyleSheet, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import { Camera as CameraIcon, ChevronLeft, X, Check, MapPin } from 'lucide-react-native';
+import { useRouter, useFocusEffect } from 'expo-router';
+import { Camera as CameraIcon, ChevronLeft, X, Check, ChevronRight } from 'lucide-react-native';
 import { Image } from 'expo-image';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
+  useAnimatedScrollHandler,
   withRepeat,
   withTiming,
   withSpring,
   withSequence,
-  interpolate,
-  Extrapolation,
-  runOnJS,
   FadeIn,
-  FadeInDown,
   FadeInUp,
   Easing,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
-import { Text, Button, color, radius, space, spring } from '@unsung/ui';
+import { Text, color, radius, space, spring } from '@unsung/ui';
 import { Vignette } from '@/components/camera/Vignette';
 import { HolographicBrackets } from '@/components/camera/HolographicBrackets';
-import { StarRating } from '@/components/review/StarRating';
-import { VibeChip } from '@/components/feed/VibeChip';
 import { scan, nutrition } from '@/lib/api';
+import { useScanSession } from '@/lib/store/scanSession';
 import { useReduceMotion } from '@/hooks/useReduceMotion';
-import type { ScanResult, NutritionFact } from '@unsung/contracts';
+import type { ScanResult } from '@unsung/contracts';
 
 type Phase = 'preview' | 'scanning' | 'result';
 
+// Mock camera viewfinder image — real expo-camera frame + captured photo replace this.
+const MOCK_PHOTO = 'https://images.unsplash.com/photo-1612874742237-6526221588e3?w=1600';
+
 // ── Layout constants ──
+const NAV_CLEARANCE = 74; // lift bottom controls clear of the floating pill nav
 const SHUTTER_SIZE = 76;
 const SHUTTER_RING_WIDTH = 4;
 const ROUND_BTN = 40;
@@ -47,12 +46,20 @@ export default function Scan() {
   const router = useRouter();
   const reduceMotion = useReduceMotion();
   const insets = useSafeAreaInsets();
+  const setSession = useScanSession((s) => s.set);
   const [phase, setPhase] = useState<Phase>('preview');
   const [result, setResult] = useState<ScanResult | null>(null);
-  const [nut, setNut] = useState<NutritionFact | null>(null);
-  // Measured height of the tab-screen content area (excludes the tab bar) —
-  // Dimensions.get('window') includes it, which pushed sheet content behind the tabs.
-  const [containerH, setContainerH] = useState(0);
+
+  // Reset to a fresh camera every time the tab regains focus (e.g. after
+  // backing out of the result route) so re-scanning always starts clean.
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        setPhase('preview');
+        setResult(null);
+      };
+    }, []),
+  );
 
   // Shutter ring pulse
   const ringScale = useSharedValue(1);
@@ -96,7 +103,7 @@ export default function Scan() {
     const r = await scan.submitScan('mock://carbonara');
     const n = await nutrition.getNutrition(r.suggestedNutritionLookupKey ?? '');
     setResult(r);
-    setNut(n);
+    setSession({ result: r, nutrition: n, photoUri: MOCK_PHOTO });
     hapticImpact(Haptics.ImpactFeedbackStyle.Light);
     setPhase('result');
   }
@@ -104,18 +111,18 @@ export default function Scan() {
   function reset() {
     hapticImpact();
     setResult(null);
-    setNut(null);
     setPhase('preview');
   }
 
+  function openDetail() {
+    hapticImpact(Haptics.ImpactFeedbackStyle.Medium);
+    router.push('/scan-result');
+  }
+
   return (
-    <View style={styles.root} onLayout={(e) => setContainerH(e.nativeEvent.layout.height)}>
+    <View style={styles.root}>
       {/* Mock camera viewfinder — real expo-camera mounts here. */}
-      <Image
-        source={{ uri: 'https://images.unsplash.com/photo-1612874742237-6526221588e3?w=1600' }}
-        style={StyleSheet.absoluteFill}
-        contentFit="cover"
-      />
+      <Image source={{ uri: MOCK_PHOTO }} style={StyleSheet.absoluteFill} contentFit="cover" />
       <Vignette />
 
       {phase !== 'result' && <HolographicBrackets />}
@@ -136,7 +143,7 @@ export default function Scan() {
       {phase === 'preview' && (
         <Animated.View
           entering={reduceMotion ? undefined : FadeIn.duration(300)}
-          style={[styles.previewBottom, { bottom: insets.bottom + 16 }]}
+          style={[styles.previewBottom, { bottom: insets.bottom + 16 + NAV_CLEARANCE }]}
         >
           <View style={styles.eyebrowRow}>
             <View style={styles.eyebrowDotLight} />
@@ -166,7 +173,7 @@ export default function Scan() {
       {phase === 'scanning' && (
         <Animated.View
           entering={reduceMotion ? undefined : FadeIn.duration(220)}
-          style={[styles.scanningBottom, { bottom: insets.bottom + 16 }]}
+          style={[styles.scanningBottom, { bottom: insets.bottom + 16 + NAV_CLEARANCE }]}
         >
           <ShimmerSweep reduceMotion={reduceMotion} />
           <View style={styles.scanningCaptionRow}>
@@ -178,14 +185,39 @@ export default function Scan() {
         </Animated.View>
       )}
 
-      {/* Result sheet */}
-      {phase === 'result' && result && nut && containerH > 0 && (
-        <ResultSheet
-          result={result}
-          nutrition={nut}
-          reduceMotion={reduceMotion}
-          containerH={containerH}
-        />
+      {/* Result phase — compact card, tap to open the full detail page */}
+      {phase === 'result' && result && (
+        <Animated.View
+          entering={reduceMotion ? undefined : FadeInUp.duration(320)}
+          style={[styles.resultCardWrap, { bottom: insets.bottom + 16 + NAV_CLEARANCE }]}
+        >
+          <Pressable
+            onPress={openDetail}
+            accessibilityRole="button"
+            accessibilityLabel={`${result.detectedDish}, ${Math.round(result.confidence * 100)} percent confidence. Open details.`}
+            style={({ pressed }) => [styles.resultCard, pressed && { opacity: 0.9 }]}
+          >
+            <Image source={{ uri: MOCK_PHOTO }} style={styles.resultThumb} contentFit="cover" />
+            <View style={styles.resultCardBody}>
+              <View style={styles.eyebrowRow}>
+                <View style={styles.eyebrowDot} />
+                <Text variant="labelStrong" tone="muted" style={styles.eyebrowText}>AI DETECTED</Text>
+              </View>
+              <Text variant="h3Serif" tone="base" numberOfLines={1} style={styles.resultTitle}>
+                {result.detectedDish}
+              </Text>
+              <View style={styles.confidenceRow}>
+                <View style={styles.confidenceCheck}>
+                  <Check size={9} color={color.success.base} strokeWidth={3} />
+                </View>
+                <Text variant="smallStrong" tone="success">
+                  {Math.round(result.confidence * 100)}% confidence
+                </Text>
+              </View>
+            </View>
+            <ChevronRight size={22} color={color.text.subtle} />
+          </Pressable>
+        </Animated.View>
       )}
     </View>
   );
@@ -206,7 +238,7 @@ function RoundIcon({ onPress, children }: { onPress: () => void; children: React
   );
 }
 
-// ── Editorial shimmer sweep (replaces flat translucent box) ──
+// ── Editorial shimmer sweep ──
 function ShimmerSweep({ reduceMotion }: { reduceMotion: boolean }) {
   const x = useSharedValue(-1);
   const [shimmerWidth, setShimmerWidth] = React.useState(240);
@@ -240,307 +272,6 @@ function PulsingDot({ reduceMotion }: { reduceMotion: boolean }) {
   return <Animated.View style={[styles.pulseDot, s]} />;
 }
 
-// ── Result sheet — expands in place, gesture-dismissable ──
-// Snap points are fractions of the *measured* container (tab-screen area,
-// tab bar excluded) so the sheet lands consistently across devices.
-const SNAP_HALF_FRACTION = 0.42;
-const SNAP_FULL_FRACTION = 0.08;
-const SHEET_SPRING = { damping: 22, stiffness: 160, mass: 1 };
-
-const CUISINES = ['Italian', 'Japanese', 'Mexican', 'Indian', 'French', 'Thai', 'American', 'Other'];
-const PORTIONS = ['Small', 'Just Right', 'Generous'];
-const OCCASIONS = ['Solo', 'Date', 'Friends', 'Business'];
-
-function ResultSheet({
-  result,
-  nutrition: nut,
-  reduceMotion,
-  containerH,
-}: {
-  result: ScanResult;
-  nutrition: NutritionFact;
-  reduceMotion: boolean;
-  containerH: number;
-}) {
-  const SNAP_FULL = containerH * SNAP_FULL_FRACTION;
-  const [expanded, setExpanded] = useState(false);
-  // Measured heights of the handle area and the collapsed content, so the
-  // collapsed snap hugs the content — a fixed fraction leaves a dead white
-  // band under the button on tall screens.
-  const [handleH, setHandleH] = useState(0);
-  const [collapsedContentH, setCollapsedContentH] = useState(0);
-  const SNAP_HALF =
-    handleH > 0 && collapsedContentH > 0
-      ? Math.max(containerH - handleH - collapsedContentH, SNAP_FULL)
-      : containerH * SNAP_HALF_FRACTION;
-  const translateY = useSharedValue(containerH);
-  const context = useSharedValue(0);
-
-  // Form state
-  const [restaurant, setRestaurant] = useState('');
-  const [location, setLocation] = useState('');
-  const [cuisine, setCuisine] = useState('');
-  const [overall, setOverall] = useState(0);
-  const [taste, setTaste] = useState(0);
-  const [presentation, setPresentation] = useState(0);
-  const [portion, setPortion] = useState('');
-  const [orderAgain, setOrderAgain] = useState<boolean | null>(null);
-  const [occasion, setOccasion] = useState('');
-  const [notes, setNotes] = useState('');
-
-  useEffect(() => {
-    // Entrance slide-up, then retarget once the collapsed content is measured.
-    if (!expanded) {
-      translateY.value = withSpring(SNAP_HALF, SHEET_SPRING);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [SNAP_HALF]);
-
-  function animateTo(target: number) {
-    translateY.value = reduceMotion
-      ? withTiming(target, { duration: 0 })
-      : withSpring(target, SHEET_SPRING);
-  }
-
-  function handleExpand() {
-    hapticImpact(Haptics.ImpactFeedbackStyle.Medium);
-    setExpanded(true);
-    animateTo(SNAP_FULL);
-  }
-
-  function handleDismiss() {
-    setExpanded(false);
-    animateTo(SNAP_HALF);
-  }
-
-  const gesture = Gesture.Pan()
-    .activeOffsetY([-10, 10])
-    .onStart(() => {
-      context.value = translateY.value;
-    })
-    .onUpdate((e) => {
-      translateY.value = Math.max(SNAP_FULL, context.value + e.translationY);
-    })
-    .onEnd((e) => {
-      const velocity = e.velocityY;
-      if (velocity > 600) {
-        if (expanded) {
-          if (reduceMotion) {
-            translateY.value = withTiming(SNAP_HALF, { duration: 0 });
-          } else {
-            translateY.value = withSpring(SNAP_HALF, SHEET_SPRING);
-          }
-          runOnJS(setExpanded)(false);
-        }
-        return;
-      }
-      if (velocity < -600) {
-        if (reduceMotion) {
-          translateY.value = withTiming(SNAP_FULL, { duration: 0 });
-        } else {
-          translateY.value = withSpring(SNAP_FULL, SHEET_SPRING);
-        }
-        runOnJS(setExpanded)(true);
-        return;
-      }
-      const current = translateY.value;
-      const distHalf = Math.abs(current - SNAP_HALF);
-      const distFull = Math.abs(current - SNAP_FULL);
-      if (distFull < distHalf) {
-        if (reduceMotion) {
-          translateY.value = withTiming(SNAP_FULL, { duration: 0 });
-        } else {
-          translateY.value = withSpring(SNAP_FULL, SHEET_SPRING);
-        }
-        runOnJS(setExpanded)(true);
-      } else {
-        if (reduceMotion) {
-          translateY.value = withTiming(SNAP_HALF, { duration: 0 });
-        } else {
-          translateY.value = withSpring(SNAP_HALF, SHEET_SPRING);
-        }
-        runOnJS(setExpanded)(false);
-      }
-    });
-
-  const sheetStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateY.value }],
-  }));
-
-  return (
-    <Animated.View style={[styles.sheet, { height: containerH }, sheetStyle]}>
-      {/* Pan lives on the handle only — on the whole sheet it swallows the
-          form's scroll gestures on Android and Save Review is unreachable. */}
-      <GestureDetector gesture={gesture}>
-        <View
-          style={styles.sheetHandleArea}
-          onLayout={(e) => setHandleH(e.nativeEvent.layout.height)}
-        >
-          <View style={styles.sheetHandle} />
-        </View>
-      </GestureDetector>
-
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={{ flex: 1 }}
-        >
-        <ScrollView
-          scrollEnabled={expanded}
-          showsVerticalScrollIndicator={false}
-          // Bottom padding = the sheet's residual offset below the container
-          // (SNAP_FULL) so the last field/button clears the tab bar exactly.
-          contentContainerStyle={[styles.sheetScroll, { paddingBottom: SNAP_FULL + space.lg }]}
-          keyboardShouldPersistTaps="handled"
-        >
-          {/* Scan info — always visible. Measured (collapsed only) so the
-              half snap shows exactly this much, no dead band underneath. */}
-          <View
-            onLayout={(e) => {
-              if (!expanded) setCollapsedContentH(e.nativeEvent.layout.height + space.lg);
-            }}
-          >
-          <View style={styles.eyebrowRow}>
-            <View style={styles.eyebrowDot} />
-            <Text variant="labelStrong" tone="muted" style={styles.eyebrowText}>AI DETECTED</Text>
-          </View>
-          <Text variant="display" tone="base" style={styles.sheetTitle}>
-            {result.detectedDish}
-          </Text>
-          <View style={styles.confidenceRow}>
-            <View style={styles.confidenceCheck}>
-              <Check size={10} color={color.success.base} strokeWidth={3} />
-            </View>
-            <Text variant="smallStrong" tone="success">
-              {Math.round(result.confidence * 100)}% confidence
-            </Text>
-          </View>
-
-          <View style={styles.sectionLabelRow}>
-            <Text variant="labelStrong" style={styles.sectionLabelText}>KEY INGREDIENTS</Text>
-            <View style={styles.sectionLabelLine} />
-          </View>
-          <Text variant="body" style={styles.ingredients}>
-            {result.ingredients.join(' · ')}
-          </Text>
-
-          <View style={styles.sectionLabelRow}>
-            <Text variant="labelStrong" style={styles.sectionLabelText}>NUTRITION</Text>
-            <View style={styles.sectionLabelLine} />
-          </View>
-          <View style={styles.nutRow}>
-            <NutChip label="CALORIES" value={`${nut.calories}`} />
-            <NutChip label="PROTEIN" value={`${nut.protein_g}g`} />
-            <NutChip label="CARBS" value={`${nut.carbs_g}g`} />
-          </View>
-
-          {/* Button — hidden when expanded */}
-          {!expanded && (
-            <Button label="Log & Submit Review" onPress={handleExpand} style={styles.submitBtn} />
-          )}
-          </View>
-
-          {/* Review form — visible when expanded */}
-          {expanded && (
-            <View>
-              <View style={styles.sectionLabelRow}>
-                <Text variant="labelStrong" style={styles.sectionLabelText}>RESTAURANT</Text>
-                <View style={styles.sectionLabelLine} />
-              </View>
-              <TextInput
-                value={restaurant}
-                onChangeText={setRestaurant}
-                placeholder="Restaurant Name"
-                placeholderTextColor={color.text.subtle}
-                style={styles.formInput}
-              />
-              <View style={styles.locationRow}>
-                <MapPin size={16} color={color.text.subtle} />
-                <TextInput
-                  value={location}
-                  onChangeText={setLocation}
-                  placeholder="Location"
-                  placeholderTextColor={color.text.subtle}
-                  style={[styles.formInput, { flex: 1, marginBottom: 0 }]}
-                />
-              </View>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
-                {CUISINES.map((c) => (
-                  <VibeChip key={c} vibe={c} isActive={cuisine === c} onPress={() => setCuisine(c)} />
-                ))}
-              </ScrollView>
-
-              <View style={styles.sectionLabelRow}>
-                <Text variant="labelStrong" style={styles.sectionLabelText}>RATING</Text>
-                <View style={styles.sectionLabelLine} />
-              </View>
-              <StarRating label="Overall" value={overall} onChange={setOverall} size={32} />
-              <StarRating label="Taste" value={taste} onChange={setTaste} size={24} />
-              <StarRating label="Presentation" value={presentation} onChange={setPresentation} size={24} />
-
-              <View style={styles.sectionLabelRow}>
-                <Text variant="labelStrong" style={styles.sectionLabelText}>DETAILS</Text>
-                <View style={styles.sectionLabelLine} />
-              </View>
-              <View style={styles.chipRow}>
-                {PORTIONS.map((p) => (
-                  <VibeChip key={p} vibe={p} isActive={portion === p} onPress={() => setPortion(p)} />
-                ))}
-              </View>
-
-              <View style={styles.sectionLabelRow}>
-                <Text variant="labelStrong" style={styles.sectionLabelText}>ORDER AGAIN?</Text>
-                <View style={styles.sectionLabelLine} />
-              </View>
-              <View style={styles.chipRow}>
-                <VibeChip vibe="Yes" isActive={orderAgain === true} onPress={() => setOrderAgain(true)} />
-                <VibeChip vibe="No" isActive={orderAgain === false} onPress={() => setOrderAgain(false)} />
-              </View>
-
-              <View style={styles.sectionLabelRow}>
-                <Text variant="labelStrong" style={styles.sectionLabelText}>OCCASION</Text>
-                <View style={styles.sectionLabelLine} />
-              </View>
-              <View style={styles.chipRow}>
-                {OCCASIONS.map((o) => (
-                  <VibeChip key={o} vibe={o} isActive={occasion === o} onPress={() => setOccasion(o)} />
-                ))}
-              </View>
-
-              <View style={styles.sectionLabelRow}>
-                <Text variant="labelStrong" style={styles.sectionLabelText}>NOTES</Text>
-                <View style={styles.sectionLabelLine} />
-              </View>
-              <TextInput
-                value={notes}
-                onChangeText={setNotes}
-                placeholder="Any thoughts..."
-                placeholderTextColor={color.text.subtle}
-                multiline
-                style={styles.formTextArea}
-              />
-
-              <Button
-                label="Save Review"
-                onPress={() => { hapticImpact(); handleDismiss(); }}
-                style={styles.saveBtn}
-              />
-            </View>
-          )}
-        </ScrollView>
-        </KeyboardAvoidingView>
-    </Animated.View>
-  );
-}
-
-function NutChip({ label, value }: { label: string; value: string }) {
-  return (
-    <View style={styles.nutChip}>
-      <Text variant="labelStrong" tone="success" style={styles.nutLabel}>{label}</Text>
-      <Text variant="h3Serif" tone="base" style={styles.nutValue}>{value}</Text>
-    </View>
-  );
-}
-
 // ── Styles ──
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#0B0B0C' },
@@ -564,7 +295,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.12)',
   },
 
-  // Eyebrow (light variant for camera overlay)
+  // Eyebrow
   eyebrowRow: { flexDirection: 'row', alignItems: 'center' },
   eyebrowDot: { width: 5, height: 5, borderRadius: 99, backgroundColor: color.primary.base, marginRight: 7 },
   eyebrowDotLight: { width: 5, height: 5, borderRadius: 99, backgroundColor: color.surface, marginRight: 7 },
@@ -641,91 +372,45 @@ const styles = StyleSheet.create({
   },
   scanningCaption: { letterSpacing: 0.3 },
 
-  // Result sheet
-  sheet: {
+  // Result card
+  resultCardWrap: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: color.surface,
-    borderTopLeftRadius: radius.xl,
-    borderTopRightRadius: radius.xl,
+    left: space.lg,
+    right: space.lg,
   },
-  sheetScroll: {
-    paddingHorizontal: 20,
-  },
-  sheetHandleArea: {
-    paddingTop: 14,
+  resultCard: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 44,
+    backgroundColor: color.surface,
+    borderRadius: radius.xl,
+    padding: space.sm + 2,
+    gap: space.sm + 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18,
+    shadowRadius: 20,
+    elevation: 8,
   },
-  sheetHandle: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
+  resultThumb: {
+    width: 64,
+    height: 64,
+    borderRadius: radius.md,
     backgroundColor: color.surfaceMuted,
-    alignSelf: 'center',
-    marginBottom: space.md,
   },
-  sheetTitle: { marginTop: space.xs, lineHeight: 38 },
+  resultCardBody: { flex: 1, gap: 3 },
+  resultTitle: { marginTop: 1 },
   confidenceRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: space.xs + 2,
     gap: 6,
+    marginTop: 1,
   },
   confidenceCheck: {
-    width: 16,
-    height: 16,
+    width: 15,
+    height: 15,
     borderRadius: 99,
     backgroundColor: color.success.soft,
     alignItems: 'center',
     justifyContent: 'center',
   },
-
-  // Section labels
-  sectionLabelRow: { flexDirection: 'row', alignItems: 'center', marginTop: space.md + 2, marginBottom: space.sm },
-  sectionLabelText: { letterSpacing: 1.4, fontSize: 10, color: color.text.muted },
-  sectionLabelLine: { flex: 1, height: 1, backgroundColor: color.border, marginLeft: space.sm + 2 },
-
-  ingredients: { lineHeight: 22 },
-
-  // Nutrition row
-  nutRow: { flexDirection: 'row', gap: space.sm + 2 },
-  nutChip: {
-    flex: 1,
-    backgroundColor: color.success.soft,
-    borderRadius: radius.md,
-    paddingVertical: space.sm + 2,
-    paddingHorizontal: space.sm + 4,
-  },
-  nutLabel: { letterSpacing: 1.2, fontSize: 10 },
-  nutValue: { marginTop: 4 },
-
-  submitBtn: { marginTop: space.lg },
-  saveBtn: { marginTop: space.lg, marginBottom: space.xl },
-
-  // Form inputs
-  formInput: {
-    backgroundColor: color.surfaceMuted,
-    borderRadius: radius.md,
-    paddingVertical: space.sm,
-    paddingHorizontal: space.sm,
-    fontSize: 15,
-    color: color.text.base,
-    marginBottom: space.lg,
-  },
-  locationRow: { flexDirection: 'row', alignItems: 'center', gap: space.xs, marginBottom: space.sm },
-  formTextArea: {
-    backgroundColor: color.surfaceMuted,
-    borderRadius: radius.sm,
-    paddingVertical: space.sm + 2,
-    paddingHorizontal: space.sm + 4,
-    fontSize: 15,
-    color: color.text.base,
-    minHeight: 80,
-    textAlignVertical: 'top',
-  },
-  chipRow: { flexDirection: 'row', gap: space.sm, marginTop: space.xs },
 });

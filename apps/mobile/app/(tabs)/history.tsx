@@ -23,6 +23,7 @@ import { MotiView } from 'moti';
 import { Screen, Text, color, radius, shadow, space } from '@unsung/ui';
 import { reviews, gamification } from '@/lib/api';
 import { useReduceMotion } from '@/hooks/useReduceMotion';
+import { useNavChrome, updateNavChrome } from '@/lib/navChrome';
 import type { Review } from '@unsung/contracts';
 
 const SAMPLE_PHOTO = 'https://images.unsplash.com/photo-1612874742237-6526221588e3?w=800';
@@ -48,6 +49,7 @@ function hapticImpact() {
 
 export default function History() {
   const scrollY = useSharedValue(0);
+  const navChrome = useNavChrome();
   const reduceMotion = useReduceMotion();
   const navigation = useNavigation();
   const [refreshing, setRefreshing] = useState(false);
@@ -78,7 +80,9 @@ export default function History() {
   // fires, so the collapsed header stayed hidden. The standard onScroll prop
   // binds to the real scroll node and fires reliably.
   const onScroll = (e: { nativeEvent: { contentOffset: { y: number } } }) => {
-    scrollY.value = e.nativeEvent.contentOffset.y;
+    const y = e.nativeEvent.contentOffset.y;
+    scrollY.value = y;
+    updateNavChrome(navChrome, y);
   };
 
   const heroStyle = useAnimatedStyle(() => ({
@@ -357,7 +361,7 @@ function Glance({ icon, label }: { icon: React.ReactNode; label: string }) {
 
 // ── Styles ──
 const styles = StyleSheet.create({
-  scrollContent: { paddingBottom: space.xxl + space.md },
+  scrollContent: { paddingBottom: space.xxl + space.xxl + space.lg },
 
   // Hero
   heroBlock: {
