@@ -25,7 +25,7 @@ export async function getRestaurant(id: string): Promise<RestaurantDetail> {
       if (id === 'r_joes_pasta') return joesPasta as RestaurantDetail;
       const summary = (nearby as RestaurantSummary[]).find((r) => r.id === id);
       if (!summary) throw new Error(`Restaurant ${id} not found`);
-      return { ...summary, address: `${summary.neighborhood}, NY`, bestSellers: [], unsungBites: [] };
+      return { ...summary, address: `${summary.neighborhood}, NY`, legends: [], unsungBites: [] };
     },
   );
 }

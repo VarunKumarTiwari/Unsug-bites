@@ -3,9 +3,9 @@ import Link from "next/link";
 import { OpenAppButton } from "@/components/open-app-button";
 
 export const metadata: Metadata = {
-  title: "Sign up — Shauni",
+  title: "Sign up — Unsung Bites",
   description:
-    "Create your Shauni account in the app and start finding hidden-gem restaurants.",
+    "Create your Unsung Bites account in the app and start finding hidden-gem restaurants.",
 };
 
 export default function SignupPage() {

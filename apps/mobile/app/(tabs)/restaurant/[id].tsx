@@ -4,6 +4,7 @@ import {
   Pressable,
   StyleSheet,
   Platform,
+  Linking,
   useWindowDimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -21,7 +22,7 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import { MotiView } from 'moti';
-import { ChevronLeft, Navigation } from 'lucide-react-native';
+import { ChevronLeft, Navigation, UtensilsCrossed } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { Text, Button, color, radius, shadow, space, spring } from '@unsung/ui';
 import { VibeTag } from '@/components/restaurant/VibeTag';
@@ -202,7 +203,9 @@ export default function RestaurantDetail() {
     );
   }
 
-  const dishes = tab === 'legends' ? r.bestSellers : r.unsungBites;
+  const legends = r.legends ?? [];
+  const bites = r.unsungBites ?? [];
+  const isEmpty = tab === 'legends' ? legends.length === 0 : bites.length === 0;
 
   return (
     <View style={styles.root}>
@@ -272,6 +275,18 @@ export default function RestaurantDetail() {
               onPress={() => hapticImpact(Haptics.ImpactFeedbackStyle.Medium)}
               style={styles.directionsBtn}
             />
+            {r.website ? (
+              <Button
+                label="View Menu"
+                variant="secondary"
+                leading={<UtensilsCrossed size={16} color={color.text.base} />}
+                onPress={() => {
+                  hapticImpact();
+                  Linking.openURL(r.website!);
+                }}
+                style={styles.viewMenuBtn}
+              />
+            ) : null}
           </Animated.View>
 
           {/* Section label for menu */}
@@ -304,14 +319,37 @@ export default function RestaurantDetail() {
             <Animated.View style={[styles.tabIndicator, tabIndicatorStyle]} />
           </View>
 
-          {/* Dishes */}
+          {/* Menu list */}
           <View style={styles.dishList} key={tab}>
-            {dishes.length === 0 ? (
+            {isEmpty ? (
               <Text variant="small" tone="muted" style={{ marginTop: space.md }}>
-                Nothing here yet — be the first to log a dish.
+                {tab === 'legends'
+                  ? 'No reviews yet.'
+                  : 'Nothing here yet — be the first to log a dish.'}
               </Text>
+            ) : tab === 'legends' ? (
+              legends.map((review: string, idx: number) => (
+                <Animated.View
+                  key={idx}
+                  entering={
+                    reduceMotion
+                      ? undefined
+                      : FadeInDown.delay(Math.min(60 * idx, 240)).duration(360).springify().damping(20)
+                  }
+                  style={styles.dishRow}
+                >
+                  <View style={[styles.dishImage, styles.reviewIcon]}>
+                    <UtensilsCrossed size={28} color={color.text.muted} />
+                  </View>
+                  <View style={styles.dishBody}>
+                    <Text variant="small" tone="base" style={styles.reviewText} numberOfLines={4}>
+                      {review}
+                    </Text>
+                  </View>
+                </Animated.View>
+              ))
             ) : (
-              dishes.map((d: Dish, idx: number) => (
+              bites.map((d: Dish, idx: number) => (
                 <Animated.View
                   key={d.id}
                   entering={
@@ -479,6 +517,7 @@ const styles = StyleSheet.create({
   subtitleText: { lineHeight: 16 },
   vibesWrap: { flexDirection: 'row', gap: 8, flexWrap: 'wrap', marginTop: space.md },
   directionsBtn: { marginTop: space.lg },
+  viewMenuBtn: { marginTop: space.sm },
 
   // Menu section
   menuSectionLabel: {
@@ -522,6 +561,8 @@ const styles = StyleSheet.create({
   dishBody: { flex: 1 },
   dishName: { fontSize: 17, lineHeight: 22 },
   dishDescription: { marginTop: 4, lineHeight: 18 },
+  reviewIcon: { alignItems: 'center', justifyContent: 'center' },
+  reviewText: { lineHeight: 19 },
   pricePill: {
     marginTop: 8,
     alignSelf: 'flex-start',

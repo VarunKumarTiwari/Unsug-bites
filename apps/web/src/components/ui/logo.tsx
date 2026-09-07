@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 // React Native), so the canonical geometry + strings (standards/brand.md) are
 // duplicated here. Edit standards/brand.md and packages/ui/src/brand/* in lockstep.
 export const BRAND = {
-  name: "Shauni",
+  name: "Unsung Bites",
   tagline: "Trust your gut, not the feed.",
 } as const;
 

@@ -4,6 +4,7 @@
   "cuisine": "Homestyle Italian",
   "neighborhood": "Red Hook",
   "address": "138 Van Brunt St, Brooklyn, NY",
+  "website": "https://example.com",
   "hiddenGemScore": 0.86,
   "rating": 4.8,
   "reviewCount": 142,
@@ -11,21 +12,9 @@
   "lat": 40.6782,
   "lng": -74.0095,
   "vibes": ["Cozy", "Date Night", "Local Favorite"],
-  "bestSellers": [
-    {
-      "id": "d_truffle_carbonara",
-      "name": "Truffle Carbonara",
-      "image": "https://images.unsplash.com/photo-1612874742237-6526221588e3?w=800",
-      "priceCents": 2400,
-      "description": "Fresh tagliatelle, guanciale, pecorino, black truffle."
-    },
-    {
-      "id": "d_focaccia_house",
-      "name": "House Focaccia",
-      "image": "https://images.unsplash.com/photo-1585478259715-1c195ae2b568?w=800",
-      "priceCents": 900,
-      "description": "Olive oil, sea salt, rosemary."
-    }
+  "legends": [
+    "Came here on a Friday and the cacio e pepe was unreal — best in the neighborhood. Cozy spot, a little cramped but worth it.",
+    "Grandma's ragu is the move. Portions are huge and the focaccia comes out warm. Service was slow but the food made up for it."
   ],
   "unsungBites": [
     {
