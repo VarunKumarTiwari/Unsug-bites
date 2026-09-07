@@ -3,8 +3,8 @@ import Link from "next/link";
 import { OpenAppButton } from "@/components/open-app-button";
 
 export const metadata: Metadata = {
-  title: "Login — Shauni",
-  description: "Log in to Shauni in the app to pick up where you left off.",
+  title: "Login — Unsung Bites",
+  description: "Log in to Unsung Bites in the app to pick up where you left off.",
 };
 
 export default function LoginPage() {
@@ -17,7 +17,7 @@ export default function LoginPage() {
         Welcome back
       </h1>
       <p className="max-w-md text-base leading-relaxed text-muted-foreground">
-        Shauni lives in the app. Open it to log in and get back to the spots
+        Unsung Bites lives in the app. Open it to log in and get back to the spots
         worth finding.
       </p>
       <OpenAppButton />

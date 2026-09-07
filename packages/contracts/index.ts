@@ -26,8 +26,9 @@ export interface Dish {
 
 export interface RestaurantDetail extends RestaurantSummary {
   address: string;
-  bestSellers: Dish[];
-  unsungBites: Dish[];
+  website?: string; // homepage URL from Google; absent when unknown
+  legends: string[]; // "The Legends" — Google review excerpts (what the crowd says)
+  unsungBites: Dish[]; // "The Unsung Bites" — dishes logged via in-app scans
 }
 
 // ─── Scan ─────────────────────────────────────────────────────────────────────

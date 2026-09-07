@@ -13,17 +13,17 @@ const fraunces = Fraunces({
   subsets: ["latin"],
 });
 
-const TITLE = "Shauni — Discover Hidden-Gem Restaurants";
+const TITLE = "Unsung Bites — Discover Hidden-Gem Restaurants";
 const DESCRIPTION =
   "Find off-radar local spots, scan dishes with AI, leave honest reviews, and earn badges for exploring your neighborhood.";
 
 export const metadata: Metadata = {
   title: TITLE,
   description: DESCRIPTION,
-  applicationName: "Shauni",
+  applicationName: "Unsung Bites",
   openGraph: {
     type: "website",
-    siteName: "Shauni",
+    siteName: "Unsung Bites",
     title: TITLE,
     description: DESCRIPTION,
   },

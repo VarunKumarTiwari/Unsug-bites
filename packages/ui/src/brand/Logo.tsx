@@ -5,7 +5,7 @@ import { color } from '../tokens/color';
 // Brand strings — canonical values live in standards/brand.md. Web keeps a mirror
 // (it can't import @unsung/ui). Keep all three in sync.
 export const BRAND = {
-  name: 'Shauni',
+  name: 'Unsung Bites',
   tagline: 'Trust your gut, not the feed.',
 } as const;
 
