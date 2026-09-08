@@ -15,6 +15,7 @@ import { Image } from 'expo-image';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { Text, Button, color, radius, space } from '@unsung/ui';
+import type { ScanResult } from '@unsung/contracts';
 import { StarRating } from '@/components/review/StarRating';
 import { VibeChip } from '@/components/feed/VibeChip';
 import { useScanSession } from '@/lib/store/scanSession';
@@ -116,11 +117,13 @@ export default function ScanResult() {
             <Text variant="body" style={styles.ingredients}>{result.ingredients.join(' · ')}</Text>
 
             {/* Nutrition */}
-            <SectionLabel>NUTRITION</SectionLabel>
+            <SectionLabel trailing={<SourceBadge source={result.source} coverage={result.coverage} />}>
+              NUTRITION
+            </SectionLabel>
             <View style={styles.nutRow}>
-              <NutChip label="CALORIES" value={`${nut.calories}`} />
-              <NutChip label="PROTEIN" value={`${nut.protein_g}g`} />
-              <NutChip label="CARBS" value={`${nut.carbs_g}g`} />
+              <NutChip label="CALORIES" value={`${result.nutrition.calories}`} />
+              <NutChip label="PROTEIN" value={`${result.nutrition.protein_g}g`} />
+              <NutChip label="CARBS" value={`${result.nutrition.carbs_g}g`} />
             </View>
 
             {/* Gated review form */}
@@ -202,11 +205,33 @@ export default function ScanResult() {
   );
 }
 
-function SectionLabel({ children }: { children: React.ReactNode }) {
+function SectionLabel({ children, trailing }: { children: React.ReactNode; trailing?: React.ReactNode }) {
   return (
     <View style={styles.sectionLabelRow}>
       <Text variant="labelStrong" style={styles.sectionLabelText}>{children}</Text>
       <View style={styles.sectionLabelLine} />
+      {trailing}
+    </View>
+  );
+}
+
+function SourceBadge({ source, coverage }: { source: ScanResult['source']; coverage: ScanResult['coverage'] }) {
+  const verified = source === 'usda';
+  return (
+    <View style={[styles.badge, verified ? styles.badgeVerified : styles.badgeEstimated]}>
+      {verified ? (
+        <Check size={11} color={color.success.base} strokeWidth={3} />
+      ) : (
+        <Text variant="smallStrong" tone="muted" style={styles.badgeTilde}>~</Text>
+      )}
+      <Text variant="labelStrong" tone={verified ? 'success' : 'muted'} style={styles.badgeText}>
+        {verified ? 'Verified' : 'Estimated'}
+      </Text>
+      {!verified && coverage.matched < coverage.total && (
+        <Text variant="labelStrong" tone="muted" style={styles.badgeCoverage}>
+          {coverage.matched}/{coverage.total}
+        </Text>
+      )}
     </View>
   );
 }
@@ -262,6 +287,22 @@ const styles = StyleSheet.create({
   sectionLabelRow: { flexDirection: 'row', alignItems: 'center', marginTop: space.md + 2, marginBottom: space.sm },
   sectionLabelText: { letterSpacing: 1.4, fontSize: 10, color: color.text.muted },
   sectionLabelLine: { flex: 1, height: 1, backgroundColor: color.border, marginLeft: space.sm + 2 },
+
+  // Verified / Estimated source badge — chip beside the Nutrition header
+  badge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginLeft: space.sm + 2,
+    paddingVertical: 3,
+    paddingHorizontal: space.sm,
+    borderRadius: radius.pill,
+  },
+  badgeVerified: { backgroundColor: color.success.soft },
+  badgeEstimated: { backgroundColor: color.surfaceMuted },
+  badgeTilde: { fontSize: 12, lineHeight: 12 },
+  badgeText: { letterSpacing: 0.6, fontSize: 10 },
+  badgeCoverage: { letterSpacing: 0.4, fontSize: 10, opacity: 0.7 },
 
   ingredients: { lineHeight: 22 },
 

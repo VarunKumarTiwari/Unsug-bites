@@ -1,8 +1,9 @@
- import React, { useState, useEffect, useCallback } from 'react';
+ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Pressable, StyleSheet, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Camera as CameraIcon, ChevronLeft, X, Check, ChevronRight } from 'lucide-react-native';
+import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Image } from 'expo-image';
 import Animated, {
   useSharedValue,
@@ -49,17 +50,31 @@ export default function Scan() {
   const setSession = useScanSession((s) => s.set);
   const [phase, setPhase] = useState<Phase>('preview');
   const [result, setResult] = useState<ScanResult | null>(null);
+  const [permission, requestPermission] = useCameraPermissions();
+  const cameraRef = useRef<CameraView>(null);
+  const [focused, setFocused] = useState(false);
+  // Only stream while this tab is focused so the camera releases when navigating away.
+  const canUseCamera = !!permission?.granted && focused;
 
   // Reset to a fresh camera every time the tab regains focus (e.g. after
   // backing out of the result route) so re-scanning always starts clean.
   useFocusEffect(
     useCallback(() => {
+      setFocused(true);
       return () => {
+        setFocused(false);
         setPhase('preview');
         setResult(null);
       };
     }, []),
   );
+
+  // Ask for camera access once the screen mounts.
+  useEffect(() => {
+    if (permission && !permission.granted && permission.canAskAgain) {
+      requestPermission();
+    }
+  }, [permission, requestPermission]);
 
   // Shutter ring pulse
   const ringScale = useSharedValue(1);
@@ -100,10 +115,20 @@ export default function Scan() {
       withSpring(1, spring.snappy),
     );
     setPhase('scanning');
-    const r = await scan.submitScan('mock://carbonara');
+    // Grab the real frame when the camera is live; otherwise use the mock viewfinder image.
+    let photoUri = MOCK_PHOTO;
+    if (canUseCamera && cameraRef.current) {
+      try {
+        const photo = await cameraRef.current.takePictureAsync();
+        if (photo?.uri) photoUri = photo.uri;
+      } catch {
+        // Capture failed — fall back to the mock frame so the flow still completes.
+      }
+    }
+    const r = await scan.submitScan(photoUri);
     const n = await nutrition.getNutrition(r.suggestedNutritionLookupKey ?? '');
     setResult(r);
-    setSession({ result: r, nutrition: n, photoUri: MOCK_PHOTO });
+    setSession({ result: r, nutrition: n, photoUri });
     hapticImpact(Haptics.ImpactFeedbackStyle.Light);
     setPhase('result');
   }
@@ -121,8 +146,12 @@ export default function Scan() {
 
   return (
     <View style={styles.root}>
-      {/* Mock camera viewfinder — real expo-camera mounts here. */}
-      <Image source={{ uri: MOCK_PHOTO }} style={StyleSheet.absoluteFill} contentFit="cover" />
+      {/* Live camera when granted; static frame on web / before permission. */}
+      {canUseCamera && phase !== 'result' ? (
+        <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing="back" />
+      ) : (
+        <Image source={{ uri: MOCK_PHOTO }} style={StyleSheet.absoluteFill} contentFit="cover" />
+      )}
       <Vignette />
 
       {phase !== 'result' && <HolographicBrackets />}

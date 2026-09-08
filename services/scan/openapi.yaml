@@ -27,13 +27,35 @@ components:
   schemas:
     ScanResult:
       type: object
-      required: [scanId, detectedDish, confidence, ingredients]
+      required: [scanId, detectedDish, confidence, ingredients, source, nutrition, coverage]
       properties:
         scanId: { type: string }
         detectedDish: { type: string }
-        confidence: { type: number, description: '0..1' }
+        confidence: { type: number, description: '0..1 — dish identification, independent of nutrition source' }
         ingredients:
           type: array
           items: { type: string }
+        source:
+          type: string
+          enum: [usda, estimate]
+          description: 'usda = computed from per-ingredient USDA data; estimate = Claude fallback'
+        nutrition: { $ref: '#/components/schemas/ScanNutrition' }
+        coverage:
+          type: object
+          required: [matched, total]
+          properties:
+            matched: { type: integer }
+            total: { type: integer }
         suggestedNutritionLookupKey: { type: string }
         capturedAt: { type: string, format: date-time }
+    ScanNutrition:
+      type: object
+      required: [calories, protein_g, carbs_g, fat_g]
+      properties:
+        calories: { type: number }
+        protein_g: { type: number }
+        carbs_g: { type: number }
+        fat_g: { type: number }
+        fiber_g: { type: number }
+        sugar_g: { type: number }
+        sodium_mg: { type: number }

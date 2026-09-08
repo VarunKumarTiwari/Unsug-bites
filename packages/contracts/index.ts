@@ -32,11 +32,24 @@ export interface RestaurantDetail extends RestaurantSummary {
 }
 
 // ─── Scan ─────────────────────────────────────────────────────────────────────
+export interface ScanNutrition {
+  calories: number;
+  protein_g: number;
+  carbs_g: number;
+  fat_g: number;
+  fiber_g?: number;
+  sugar_g?: number;
+  sodium_mg?: number;
+}
+
 export interface ScanResult {
   scanId: string;
   detectedDish: string;
-  confidence: number; // 0..1
+  confidence: number; // 0..1 — dish identification, independent of nutrition source
   ingredients: string[];
+  source: 'usda' | 'estimate'; // usda = computed from per-ingredient data; estimate = Claude fallback
+  nutrition: ScanNutrition; // resolved block to show in the tiles
+  coverage: { matched: number; total: number }; // how many ingredients USDA priced
   suggestedNutritionLookupKey?: string;
   capturedAt: string; // ISO
 }
@@ -50,6 +63,7 @@ export interface NutritionFact {
   fiber_g?: number;
   sugar_g?: number;
   sodium_mg?: number;
+  source: 'usda' | 'estimate';
   flags?: string[];
 }
 
