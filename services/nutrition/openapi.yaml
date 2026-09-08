@@ -20,7 +20,7 @@ components:
   schemas:
     NutritionFact:
       type: object
-      required: [calories, protein_g, carbs_g, fat_g]
+      required: [calories, protein_g, carbs_g, fat_g, source]
       properties:
         calories: { type: number }
         protein_g: { type: number }
@@ -29,6 +29,9 @@ components:
         fiber_g: { type: number }
         sugar_g: { type: number }
         sodium_mg: { type: number }
+        source:
+          type: string
+          enum: [usda, estimate]
         flags:
           type: array
           items: { type: string, example: 'high-protein' }
