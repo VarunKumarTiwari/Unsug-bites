@@ -20,4 +20,17 @@ config.resolver.nodeModulesPaths = [
   path.resolve(workspaceRoot, 'node_modules'),
 ];
 
+// @supabase/supabase-js does an optional `import("@opentelemetry/api")` for
+// telemetry we don't use; Metro can't resolve the un-installed optional dep.
+// Stub it to an empty module so bundling succeeds. ponytail: install the real
+// otel package only if we ever want Supabase tracing.
+const emptyModule = require.resolve('./metro-empty.js');
+const originalResolveRequest = config.resolver.resolveRequest;
+config.resolver.resolveRequest = (context, moduleName, platform) => {
+  if (moduleName === '@opentelemetry/api') {
+    return { type: 'sourceFile', filePath: emptyModule };
+  }
+  return (originalResolveRequest ?? context.resolveRequest)(context, moduleName, platform);
+};
+
 module.exports = config;

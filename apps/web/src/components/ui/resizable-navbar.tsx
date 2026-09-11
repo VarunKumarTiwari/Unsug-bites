@@ -25,6 +25,12 @@ function openTheApp() {
   openApp({ platform: detectPlatform(navigator.userAgent) });
 }
 
+// Auth lives in the app now (see specs/auth-lives-in-app.md); Login/Signup
+// just open the app, which owns its own login screen.
+function openAppLogin() {
+  openApp({ platform: detectPlatform(navigator.userAgent), path: "/login" });
+}
+
 /**
  * Resizable landing navbar (Aceternity pattern), restyled to Unsung Bites.
  * Transparent + full-width at the top of the page; collapses to a centered
@@ -103,18 +109,13 @@ export function ResizableNavbar() {
 
         {/* Right actions (desktop) */}
         <div className="hidden shrink-0 items-center gap-2 md:flex">
-          <Link
-            href="/login"
-            className="inline-flex h-11 items-center rounded-full border border-transparent bg-transparent px-4 text-sm font-medium text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          <button
+            type="button"
+            onClick={openAppLogin}
+            className="inline-flex h-11 items-center rounded-full border border-border bg-background px-4 text-sm font-medium text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            Login
-          </Link>
-          <Link
-            href="/signup"
-            className="inline-flex h-11 items-center rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            Signup
-          </Link>
+            Log in / Sign up
+          </button>
           <button
             type="button"
             onClick={openTheApp}
@@ -157,20 +158,16 @@ export function ResizableNavbar() {
             />
           ))}
           <div className="mt-2 flex flex-col gap-2 border-t border-border pt-3">
-            <Link
-              href="/login"
-              onClick={() => setMenuOpen(false)}
+            <button
+              type="button"
+              onClick={() => {
+                setMenuOpen(false);
+                openAppLogin();
+              }}
               className="inline-flex h-11 items-center justify-center rounded-full border border-border bg-background px-4 text-sm font-medium text-foreground transition-colors hover:bg-muted"
             >
-              Login
-            </Link>
-            <Link
-              href="/signup"
-              onClick={() => setMenuOpen(false)}
-              className="inline-flex h-11 items-center justify-center rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-            >
-              Signup
-            </Link>
+              Log in / Sign up
+            </button>
             <button
               type="button"
               onClick={() => {

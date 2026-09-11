@@ -26,6 +26,7 @@ import { Badge } from '@/components/gamification/Badge';
 import { StreakFlame } from '@/components/gamification/StreakFlame';
 import { RestaurantCard } from '@/components/restaurant/RestaurantCard';
 import { users, gamification, discovery } from '@/lib/api';
+import { useRouter } from 'expo-router';
 import { useAuthStore } from '@/lib/store/auth';
 import { useReduceMotion } from '@/hooks/useReduceMotion';
 import { useNavChrome, updateNavChrome } from '@/lib/navChrome';
@@ -48,8 +49,9 @@ function hapticImpact() {
 }
 
 export default function Profile() {
+  const router = useRouter();
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
-  const toggle = useAuthStore((s) => s.toggle);
+  const logout = useAuthStore((s) => s.logout);
   const reduceMotion = useReduceMotion();
   const navChrome = useNavChrome();
   const scrollY = useSharedValue(0);
@@ -66,7 +68,7 @@ export default function Profile() {
   });
   const { data: nearby } = useQuery({
     queryKey: ['discovery', 'nearby'],
-    queryFn: () => discovery.getNearby(40.68, -74.0),
+    queryFn: () => discovery.getNearby(),
   });
 
   // Plain JS onScroll (not useAnimatedScrollHandler): on Android the Reanimated
@@ -291,7 +293,7 @@ export default function Profile() {
                 style={styles.signInCard}
               >
                 <Pressable
-                  onPress={() => { hapticImpact(); toggle(); }}
+                  onPress={() => { hapticImpact(); router.push('/login'); }}
                   style={({ pressed }) => [
                     styles.signInPill,
                     pressed && { opacity: 0.9, transform: [{ scale: 0.98 }] },
@@ -354,16 +356,16 @@ export default function Profile() {
             </View>
           </Animated.View>
 
-          {__DEV__ && (
+          {isLoggedIn && (
             <Pressable
-              onPress={() => { hapticImpact(); toggle(); }}
+              onPress={() => { hapticImpact(); logout(); }}
               style={({ pressed }) => [
                 styles.devToggle,
                 pressed && { opacity: 0.85 },
               ]}
             >
               <Text variant="smallMedium" tone="muted">
-                DEV: {isLoggedIn ? 'Log out' : 'Log in (mock)'}
+                Log out
               </Text>
             </Pressable>
           )}

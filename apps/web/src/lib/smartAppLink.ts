@@ -69,11 +69,13 @@ export function deepLink(path = "/"): string {
  * how the race plays out.
  */
 export function openApp(opts: { platform: Platform; path?: string }): void {
-  const { platform, path = "/" } = opts;
+  const { path = "/" } = opts;
 
-  // All platforms -> standalone Expo web deploy (open in browser).
-  // ponytail: post-launch, add a mobile branch that deep-links into the
-  // native app (visibilitychange + setTimeout store fallback) once published.
+  // All platforms -> standalone Expo web deploy (open in browser). Auth lives
+  // in the app itself now, so there's no token
+  // handoff — we just open the app (optionally at a path like /login).
+  // ponytail: post-launch, add a mobile branch that deep-links into the native
+  // app (visibilitychange + setTimeout store fallback) once published.
   const normalized = path.startsWith("/") ? path : `/${path}`;
   window.location.href = `${WEB_APP_URL}${normalized === "/" ? "" : normalized}`;
 }
