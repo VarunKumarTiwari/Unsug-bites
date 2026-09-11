@@ -22,10 +22,14 @@ export class ApiError extends Error {
 interface ApiInit extends Omit<RequestInit, 'body'> {
   body?: unknown; // JSON-serialized unless it's FormData
   timeoutMs?: number;
+  // Set false for PUBLIC routes (permitAll on the backend). Spring's resource
+  // server validates ANY Bearer token even on public routes and 401s if it
+  // fails — so attaching a token to a public GET breaks it. Default true.
+  auth?: boolean;
 }
 
 export async function apiFetch<T>(path: string, init: ApiInit = {}): Promise<T> {
-  const { body, timeoutMs = DEFAULT_TIMEOUT_MS, headers, ...rest } = init;
+  const { body, timeoutMs = DEFAULT_TIMEOUT_MS, headers, auth = true, ...rest } = init;
 
   const isForm = typeof FormData !== 'undefined' && body instanceof FormData;
   const finalHeaders: Record<string, string> = {
@@ -35,7 +39,7 @@ export async function apiFetch<T>(path: string, init: ApiInit = {}): Promise<T> 
     ...(headers as Record<string, string> | undefined),
   };
 
-  const token = getAccessToken();
+  const token = auth ? getAccessToken() : null;
   if (token) finalHeaders.Authorization = `Bearer ${token}`;
 
   const controller = new AbortController();

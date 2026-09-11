@@ -14,7 +14,7 @@ export async function getNearby(coords?: { lat: number; lng: number }): Promise<
     : '';
   return withMock(
     'discovery.getNearby',
-    () => apiFetch<RestaurantSummary[]>(`/restaurants/nearby${qs}`),
+    () => apiFetch<RestaurantSummary[]>(`/restaurants/nearby${qs}`, { auth: false }),
     () => nearby as RestaurantSummary[],
   );
 }
@@ -22,13 +22,13 @@ export async function getNearby(coords?: { lat: number; lng: number }): Promise<
 export async function getRestaurant(id: string): Promise<RestaurantDetail> {
   return withMock(
     'discovery.getRestaurant',
-    () => apiFetch<RestaurantDetail>(`/restaurants/${encodeURIComponent(id)}`),
+    () => apiFetch<RestaurantDetail>(`/restaurants/${encodeURIComponent(id)}`, { auth: false }),
     () => {
       // Mock fallback: known detail, else synthesize from the nearby list.
       if (id === 'r_joes_pasta') return joesPasta as RestaurantDetail;
       const summary = (nearby as RestaurantSummary[]).find((r) => r.id === id);
       if (!summary) throw new Error(`Restaurant ${id} not found`);
-      return { ...summary, address: `${summary.neighborhood}, NY`, legends: [], unsungBites: [] };
+      return { ...summary, address: summary.neighborhood, legends: [], unsungBites: [] };
     },
   );
 }
