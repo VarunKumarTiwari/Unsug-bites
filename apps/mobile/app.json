@@ -29,6 +29,10 @@
       [
         "expo-camera",
         { "cameraPermission": "Unsung Bites uses your camera to scan dishes for ingredient + nutrition info." }
+      ],
+      [
+        "expo-location",
+        { "locationWhenInUsePermission": "Unsung Bites uses your location to show hidden-gem restaurants near you." }
       ]
     ],
     "experiments": { "typedRoutes": true }

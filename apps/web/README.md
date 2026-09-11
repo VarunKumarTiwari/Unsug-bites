@@ -39,6 +39,32 @@ Equivalent to: `mobile:export` then `next build`.
 - `components/ui/*` — marketing components only. NO functional app code here.
 - `lib/smartAppLink.ts` — platform detection + routing (desktop → `/app`, mobile → store).
 
+## Auth (Supabase)
+
+`/login` uses Supabase for email+password, magic link, Google, and Apple sign-in.
+Sessions are cookie-based via `@supabase/ssr` (see `src/lib/supabase/*` and
+`src/middleware.ts`). Set `NEXT_PUBLIC_SUPABASE_URL` and
+`NEXT_PUBLIC_SUPABASE_ANON_KEY` (see `.env.example`).
+
+### Enable OAuth providers (Supabase dashboard)
+
+The code is ready; the providers must be turned on per environment:
+
+1. **Redirect URLs** — Authentication → URL Configuration:
+   - Site URL: your origin (e.g. `http://localhost:3000` in dev).
+   - Add `<origin>/auth/callback` to **Redirect URLs** for every origin
+     (localhost + prod domain).
+2. **Google** — Authentication → Providers → Google: enable, paste the OAuth
+   **Client ID** and **Client Secret** from Google Cloud Console (OAuth consent +
+   credentials). In Google Cloud, add `<project>.supabase.co/auth/v1/callback` as
+   an authorized redirect URI.
+3. **Apple** — Authentication → Providers → Apple: enable, paste the **Services ID**,
+   **Team ID**, **Key ID**, and the private key from your Apple Developer account.
+   Authorized redirect: `<project>.supabase.co/auth/v1/callback`.
+
+Until a provider is enabled the button surfaces the provider error inline rather
+than crashing.
+
 ## Rules
 
 See `AGENTS.md` in this directory. Short version: never import `react-native`,

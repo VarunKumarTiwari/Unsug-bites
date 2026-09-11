@@ -17,6 +17,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Screen, Text, color, space, radius } from '@unsung/ui';
+import { initAuth } from '@/lib/store/auth';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -68,6 +69,9 @@ export default function RootLayout() {
   useEffect(() => {
     if (fontsLoaded) SplashScreen.hideAsync();
   }, [fontsLoaded]);
+
+  // Restore/subscribe to the Supabase session once for the app's lifetime.
+  useEffect(() => initAuth(), []);
 
   if (!fontsLoaded) return null;
 

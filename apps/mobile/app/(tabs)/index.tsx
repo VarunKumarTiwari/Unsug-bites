@@ -16,13 +16,14 @@ import Animated, {
   withSequence,
 } from 'react-native-reanimated';
 import { useQuery } from '@tanstack/react-query';
-import { Search, AlertCircle, RefreshCw } from 'lucide-react-native';
+import { Search, AlertCircle, RefreshCw, MapPin } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { Screen, Text, color, radius, space, spring } from '@unsung/ui';
 import { RestaurantCard } from '@/components/restaurant/RestaurantCard';
 import { FauxMap } from '@/components/map/FauxMap';
 import { discovery } from '@/lib/api';
 import { useReduceMotion } from '@/hooks/useReduceMotion';
+import { useLocation } from '@/hooks/useLocation';
 import { useNavChrome, updateNavChrome } from '@/lib/navChrome';
 import type { RestaurantSummary } from '@unsung/contracts';
 
@@ -95,9 +96,14 @@ export default function Home() {
     return unsubscribe;
   }, [navigation]);
 
+  // No coords → the server resolves the user's city from their IP (correct but
+  // approximate), so the feed is already location-aware WITHOUT a permission
+  // popup. Granting GPS via "Use my location" upgrades to exact nearby results.
+  // queryKey includes coords so the feed refetches on grant.
+  const { coords, status: locStatus, requestLocation } = useLocation();
   const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ['discovery', 'nearby'],
-    queryFn: () => discovery.getNearby(40.68, -74.0),
+    queryKey: ['discovery', 'nearby', coords?.lat ?? null, coords?.lng ?? null],
+    queryFn: () => discovery.getNearby(coords ?? undefined),
   });
 
   const filteredData = useMemo(() => {
@@ -122,10 +128,13 @@ export default function Home() {
   const gridData = filteredData.slice(1);
   const hasFilters = Boolean(searchQuery.trim() || activeVibe);
 
+  const count = data?.length ?? 0;
   const subtitle = isLoading
     ? 'looking nearby…'
-    : data?.length
-    ? `${data.length} spot${data.length === 1 ? '' : 's'} worth finding`
+    : coords
+    ? `${count} spot${count === 1 ? '' : 's'} near you`
+    : count
+    ? 'spots in your area'
     : 'the good stuff, close by';
 
   const scrollHandler = useAnimatedScrollHandler({
@@ -305,6 +314,20 @@ export default function Home() {
             <View style={styles.subtitleRule} />
             <Text variant="small" tone="muted" style={styles.subtitleText}>{subtitle}</Text>
           </Animated.View>
+          {locStatus !== 'granted' && (
+            <Animated.View entering={FadeInDown.delay(160).duration(350)}>
+              <Pressable
+                onPress={() => { hapticImpact(); void requestLocation(); }}
+                disabled={locStatus === 'requesting'}
+                style={({ pressed }) => [styles.locPill, pressed && { opacity: 0.85 }]}
+              >
+                <MapPin size={13} color={color.primary.base} strokeWidth={2.5} />
+                <Text variant="smallStrong" tone="primary" style={{ marginLeft: 6 }}>
+                  {locStatus === 'requesting' ? 'Locating…' : 'Use my location'}
+                </Text>
+              </Pressable>
+            </Animated.View>
+          )}
         </Animated.View>
       </View>
 
@@ -474,6 +497,16 @@ const styles = StyleSheet.create({
   subtitleRow: { flexDirection: 'row', alignItems: 'center', marginTop: space.sm + 2, gap: SUBTITLE_GAP },
   subtitleRule: { width: 24, height: 1, backgroundColor: color.border },
   subtitleText: { lineHeight: 16 },
+  locPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    marginTop: space.sm,
+    paddingVertical: 6,
+    paddingHorizontal: space.sm,
+    borderRadius: radius.pill,
+    backgroundColor: color.primary.soft,
+  },
 
   // Inset wrapper
   insetPad: { paddingHorizontal: H_PAD },
