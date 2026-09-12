@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, TextInput, Pressable, StyleSheet, Platform, Alert } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import Svg, { Path } from 'react-native-svg';
 import { Screen, Text, Button, Logo, color, space, radius } from '@unsung/ui';
 import { supabase } from '@/lib/supabase';
@@ -39,6 +39,33 @@ function AppleMark() {
 
 export default function Login() {
   const router = useRouter();
+  const { reason, mode } = useLocalSearchParams<{ reason?: string; mode?: string }>();
+  return (
+    <AuthForm
+      reason={reason}
+      initialMode={mode === 'signup' ? 'signup' : 'signin'}
+      showBack
+      onBack={() => (router.canGoBack() ? router.back() : router.replace('/'))}
+      onSuccess={() => router.replace('/splash')}
+    />
+  );
+}
+
+export function AuthForm({
+  reason,
+  initialMode = 'signin',
+  showBack = true,
+  onBack,
+  onSuccess,
+}: {
+  reason?: string;
+  initialMode?: 'signin' | 'signup';
+  showBack?: boolean;
+  onBack?: () => void;
+  // Called once a session exists. Embedded (AuthGate) passes a no-op — the
+  // auth store flip re-renders the gate to reveal the protected content.
+  onSuccess?: () => void;
+}) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -46,7 +73,7 @@ export default function Login() {
   const [pending, setPending] = useState<Pending>(null);
   // OAuth/magic-link auto-create the account, so login==signup for those. Only
   // the email+password path needs a distinct signUp() call for new users.
-  const [mode, setMode] = useState<'signin' | 'signup'>('signin');
+  const [mode, setMode] = useState<'signin' | 'signup'>(initialMode);
 
   async function handlePasswordAuth() {
     setError(null);
@@ -68,7 +95,7 @@ export default function Login() {
     if (mode === 'signup' && !(await supabase.auth.getSession()).data.session) {
       return setMagicSent(true); // reuse the "check your email" confirmation view
     }
-    router.replace('/splash');
+    onSuccess?.();
   }
 
   async function handleMagicLink() {
@@ -131,9 +158,11 @@ export default function Login() {
             {mode === 'signup' ? 'Create your account' : 'Welcome back'}
           </Text>
           <Text variant="body" tone="muted" style={styles.subtitle}>
-            {mode === 'signup'
-              ? 'Sign up to start finding hidden gems.'
-              : 'Log in to pick up where you left off.'}
+            {reason
+              ? reason
+              : mode === 'signup'
+                ? 'Sign up to start finding hidden gems.'
+                : 'Log in to pick up where you left off.'}
           </Text>
         </View>
 
@@ -227,9 +256,11 @@ export default function Login() {
           </Pressable>
         </View>
 
-        <Pressable onPress={() => router.back()} style={styles.back} disabled={busy}>
-          <Text variant="smallMedium" tone="muted">Back</Text>
-        </Pressable>
+        {showBack && (
+          <Pressable onPress={onBack} style={styles.back} disabled={busy}>
+            <Text variant="smallMedium" tone="muted">Back</Text>
+          </Pressable>
+        )}
       </View>
     </Screen>
   );

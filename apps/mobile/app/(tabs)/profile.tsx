@@ -31,6 +31,7 @@ import { useAuthStore } from '@/lib/store/auth';
 import { useReduceMotion } from '@/hooks/useReduceMotion';
 import { useNavChrome, updateNavChrome } from '@/lib/navChrome';
 import type { Badge as BadgeType, RestaurantSummary } from '@unsung/contracts';
+import { AuthGate } from '@/components/AuthGate';
 
 // ── Scroll animation ranges ──
 const COLLAPSED_HEADER_H = 52;
@@ -49,6 +50,14 @@ function hapticImpact() {
 }
 
 export default function Profile() {
+  return (
+    <AuthGate reason="Sign up or log in to see your profile">
+      <ProfileInner />
+    </AuthGate>
+  );
+}
+
+function ProfileInner() {
   const router = useRouter();
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
   const logout = useAuthStore((s) => s.logout);

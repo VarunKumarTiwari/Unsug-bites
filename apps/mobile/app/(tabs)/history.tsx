@@ -25,6 +25,7 @@ import { reviews, gamification } from '@/lib/api';
 import { useReduceMotion } from '@/hooks/useReduceMotion';
 import { useNavChrome, updateNavChrome } from '@/lib/navChrome';
 import type { Review } from '@unsung/contracts';
+import { AuthGate } from '@/components/AuthGate';
 
 const SAMPLE_PHOTO = 'https://images.unsplash.com/photo-1612874742237-6526221588e3?w=800';
 
@@ -48,6 +49,14 @@ function hapticImpact() {
 }
 
 export default function History() {
+  return (
+    <AuthGate reason="Sign up or log in to see your history">
+      <HistoryInner />
+    </AuthGate>
+  );
+}
+
+function HistoryInner() {
   const scrollY = useSharedValue(0);
   const navChrome = useNavChrome();
   const reduceMotion = useReduceMotion();

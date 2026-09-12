@@ -25,6 +25,7 @@ import { scan, nutrition } from '@/lib/api';
 import { useScanSession } from '@/lib/store/scanSession';
 import { useReduceMotion } from '@/hooks/useReduceMotion';
 import type { ScanResult } from '@unsung/contracts';
+import { AuthGate } from '@/components/AuthGate';
 
 type Phase = 'preview' | 'scanning' | 'result';
 
@@ -44,6 +45,14 @@ function hapticImpact(style: Haptics.ImpactFeedbackStyle = Haptics.ImpactFeedbac
 }
 
 export default function Scan() {
+  return (
+    <AuthGate reason="Sign up or log in to scan dishes">
+      <ScanInner />
+    </AuthGate>
+  );
+}
+
+function ScanInner() {
   const router = useRouter();
   const reduceMotion = useReduceMotion();
   const insets = useSafeAreaInsets();
