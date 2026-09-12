@@ -13,10 +13,10 @@
 
 export type Platform = "ios" | "android" | "desktop";
 
-const APP_SCHEME = process.env.NEXT_PUBLIC_APP_SCHEME ?? "shauni";
+const APP_SCHEME = process.env.NEXT_PUBLIC_APP_SCHEME ?? "unsung";
 const WEB_APP_URL =
   process.env.NEXT_PUBLIC_WEB_APP_URL ??
-  "https://unsung-bites-app.vercel.app";
+  "https://app.unsungbites.com";
 const IOS_STORE =
   process.env.NEXT_PUBLIC_IOS_APP_URL ??
   "https://apps.apple.com/app/idTODO";

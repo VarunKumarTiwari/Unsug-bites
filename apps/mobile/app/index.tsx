@@ -3,11 +3,11 @@ import { LoadingScreen } from '@unsung/ui';
 import { useAuthStore } from '@/lib/store/auth';
 
 // Entry gate: wait for the persisted Supabase session to resolve, then route.
-// Logged in → onboarding splash (location) → app. Logged out → login.
+// Everyone lands in the app — discovery (restaurants/nearby) is public.
+// Login is asked for only on gated actions: scan, history, profile.
 export default function Index() {
   const ready = useAuthStore((s) => s.ready);
-  const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
 
   if (!ready) return <LoadingScreen />;
-  return <Redirect href={isLoggedIn ? '/splash' : '/login'} />;
+  return <Redirect href="/splash" />;
 }
