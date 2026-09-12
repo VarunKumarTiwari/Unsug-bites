@@ -45,7 +45,7 @@ export default function Login() {
       reason={reason}
       initialMode={mode === 'signup' ? 'signup' : 'signin'}
       showBack
-      onBack={() => router.back()}
+      onBack={() => (router.canGoBack() ? router.back() : router.replace('/'))}
       onSuccess={() => router.replace('/splash')}
     />
   );
