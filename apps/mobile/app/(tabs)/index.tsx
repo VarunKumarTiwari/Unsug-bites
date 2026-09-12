@@ -297,13 +297,9 @@ export default function Home() {
                 pressed && styles.pressedOpacity,
               ]}
             >
-              {searchQuery.length > 0 ? (
-                <View style={styles.heroSearchActive}>
-                  <Search size={14} color={color.surface} strokeWidth={2.5} />
-                </View>
-              ) : (
-                <Search size={18} color={color.text.muted} strokeWidth={1.8} />
-              )}
+              <View style={styles.heroSearchActive}>
+                <Search size={14} color={color.surface} strokeWidth={2.5} />
+              </View>
             </Pressable>
           </Animated.View>
 

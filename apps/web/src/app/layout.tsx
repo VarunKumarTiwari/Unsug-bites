@@ -18,11 +18,15 @@ const DESCRIPTION =
   "Find off-radar local spots, scan dishes with AI, leave honest reviews, and earn badges for exploring your neighborhood.";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://unsungbites.com",
+  ),
   title: TITLE,
   description: DESCRIPTION,
   applicationName: "Unsung Bites",
   openGraph: {
     type: "website",
+    url: "/",
     siteName: "Unsung Bites",
     title: TITLE,
     description: DESCRIPTION,
