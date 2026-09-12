@@ -2,8 +2,8 @@
 import { View, Pressable, StyleSheet, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { Camera as CameraIcon, ChevronLeft, X, Check, ChevronRight } from 'lucide-react-native';
-import { CameraView, useCameraPermissions } from 'expo-camera';
+import { Camera as CameraIcon, ChevronLeft, X, Check, ChevronRight, SwitchCamera } from 'lucide-react-native';
+import { CameraView, useCameraPermissions, type CameraType } from 'expo-camera';
 import { Image } from 'expo-image';
 import Animated, {
   useSharedValue,
@@ -60,6 +60,7 @@ function ScanInner() {
   const [phase, setPhase] = useState<Phase>('preview');
   const [result, setResult] = useState<ScanResult | null>(null);
   const [permission, requestPermission] = useCameraPermissions();
+  const [facing, setFacing] = useState<CameraType>('back');
   const cameraRef = useRef<CameraView>(null);
   const [focused, setFocused] = useState(false);
   // Only stream while this tab is focused so the camera releases when navigating away.
@@ -157,7 +158,7 @@ function ScanInner() {
     <View style={styles.root}>
       {/* Live camera when granted; static frame on web / before permission. */}
       {canUseCamera && phase !== 'result' ? (
-        <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing="back" />
+        <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing={facing} />
       ) : (
         <Image source={{ uri: MOCK_PHOTO }} style={StyleSheet.absoluteFill} contentFit="cover" />
       )}
@@ -170,10 +171,22 @@ function ScanInner() {
         <RoundIcon onPress={() => { hapticImpact(); router.back(); }}>
           <ChevronLeft size={20} color={color.surface} />
         </RoundIcon>
-        {phase === 'result' && (
+        {phase === 'result' ? (
           <RoundIcon onPress={reset}>
             <X size={20} color={color.surface} />
           </RoundIcon>
+        ) : (
+          canUseCamera && (
+            <RoundIcon
+              onPress={() => {
+                hapticImpact();
+                setFacing((f) => (f === 'back' ? 'front' : 'back'));
+              }}
+              accessibilityLabel="Switch camera"
+            >
+              <SwitchCamera size={20} color={color.surface} />
+            </RoundIcon>
+          )
         )}
       </View>
 
@@ -262,10 +275,12 @@ function ScanInner() {
 }
 
 // ── Round top-bar icon ──
-function RoundIcon({ onPress, children }: { onPress: () => void; children: React.ReactNode }) {
+function RoundIcon({ onPress, children, accessibilityLabel }: { onPress: () => void; children: React.ReactNode; accessibilityLabel?: string }) {
   return (
     <Pressable
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
       style={({ pressed }) => [
         styles.roundIcon,
         pressed && { opacity: 0.75 },
