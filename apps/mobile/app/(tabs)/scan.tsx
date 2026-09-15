@@ -158,7 +158,7 @@ function ScanInner() {
     <View style={styles.root}>
       {/* Live camera when granted; static frame on web / before permission. */}
       {canUseCamera && phase !== 'result' ? (
-        <CameraView key={facing} ref={cameraRef} style={StyleSheet.absoluteFill} facing={facing} />
+        <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing={facing} />
       ) : (
         <Image source={{ uri: MOCK_PHOTO }} style={StyleSheet.absoluteFill} contentFit="cover" />
       )}
