@@ -40,7 +40,7 @@ export function LoadingScreen({ tagline = true }: Props) {
   return (
     <View style={{ flex: 1, backgroundColor: color.primary.base, alignItems: 'center', justifyContent: 'center', padding: space.xl }}>
       <Animated.View style={markStyle}>
-        <Logo size={88} color={color.surface} />
+        <Logo size={88} tone="cream" />
       </Animated.View>
       <Animated.Text style={{ ...text.display, color: color.surface, marginTop: space.lg }}>
         {BRAND.name}

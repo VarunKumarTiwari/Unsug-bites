@@ -1,4 +1,6 @@
 import { ImageResponse } from "next/og";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { BRAND } from "@/components/ui/logo";
 
 // Auto-wires <meta property="og:image"> + twitter image at build time — no static
@@ -8,7 +10,10 @@ export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 export const alt = `${BRAND.name} — Discover Hidden-Gem Restaurants`;
 
-export default function OpengraphImage() {
+export default async function OpengraphImage() {
+  // ImageResponse can't use next/image; inline the gem mark as a data URI.
+  const gem = await readFile(join(process.cwd(), "public/brand/mark.png"));
+  const gemSrc = `data:image/png;base64,${gem.toString("base64")}`;
   return new ImageResponse(
     (
       <div
@@ -24,7 +29,8 @@ export default function OpengraphImage() {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 32 }}>
-          <div style={{ width: 32, height: 32, borderRadius: 999, background: "#A92D1B" }} />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={gemSrc} width={44} height={44} alt="" />
           <span style={{ fontSize: 28, letterSpacing: "0.08em", color: "#1C1C1EBF" }}>
             {BRAND.name.toUpperCase()}
           </span>

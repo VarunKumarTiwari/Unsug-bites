@@ -87,7 +87,7 @@ export function ResizableNavbar() {
         >
           <Logo size={26} className="text-primary" />
           <span
-            className="font-heading text-lg font-semibold tracking-tight text-foreground"
+            className="font-heading text-lg font-semibold tracking-tight text-primary"
             style={{ fontFamily: "var(--font-fraunces)" }}
           >
             {BRAND.name}
