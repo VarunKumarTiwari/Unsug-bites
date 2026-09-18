@@ -72,8 +72,9 @@ function ProfileInner() {
     enabled: isLoggedIn,
   });
   const { data: stats, isLoading, refetch } = useQuery({
-    queryKey: ['gamification', 'u_alex'],
-    queryFn: () => gamification.getState('u_alex'),
+    queryKey: ['gamification', me?.id],
+    queryFn: () => gamification.getState(me!.id),
+    enabled: !!me?.id,
   });
   const { data: nearby } = useQuery({
     queryKey: ['discovery', 'nearby'],
