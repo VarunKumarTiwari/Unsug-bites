@@ -19,7 +19,7 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import { MotiView } from 'moti';
-import { LogIn, ChevronRight } from 'lucide-react-native';
+import { LogIn, ChevronRight, Pencil } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { Screen, Text, color, radius, shadow, space } from '@unsung/ui';
 import { Badge } from '@/components/gamification/Badge';
@@ -32,6 +32,7 @@ import { useReduceMotion } from '@/hooks/useReduceMotion';
 import { useNavChrome, updateNavChrome } from '@/lib/navChrome';
 import type { Badge as BadgeType, RestaurantSummary } from '@unsung/contracts';
 import { AuthGate } from '@/components/AuthGate';
+import { EditProfileSheet } from '@/components/profile/EditProfileSheet';
 
 // ── Scroll animation ranges ──
 const COLLAPSED_HEADER_H = 52;
@@ -65,6 +66,7 @@ function ProfileInner() {
   const navChrome = useNavChrome();
   const scrollY = useSharedValue(0);
   const [refreshing, setRefreshing] = useState(false);
+  const [editing, setEditing] = useState(false);
 
   const { data: me } = useQuery({
     queryKey: ['users', 'me'],
@@ -269,6 +271,15 @@ function ProfileInner() {
                   </Text>
                 </View>
               </View>
+              <Pressable
+                onPress={() => { hapticImpact(); setEditing(true); }}
+                hitSlop={10}
+                accessibilityRole="button"
+                accessibilityLabel="Edit profile"
+                style={({ pressed }) => [styles.editButton, pressed && { opacity: 0.7 }]}
+              >
+                <Pencil size={16} color={color.surface} strokeWidth={2.5} />
+              </Pressable>
             </Animated.View>
 
             <Animated.View
@@ -352,6 +363,33 @@ function ProfileInner() {
             <StreakFlame days={stats.streakDays} />
           </Animated.View>
 
+          {/* Taste — preferred vibes + dietary. Empty prompts the user to edit. */}
+          <Animated.View entering={reduceMotion ? undefined : FadeInDown.delay(290).duration(360)} style={styles.streakWrap}>
+            <View style={styles.sectionLabel}>
+              <Text variant="labelStrong" style={styles.sectionLabelText}>TASTE</Text>
+              <View style={styles.sectionLabelLine} />
+            </View>
+            {(() => {
+              const tags = [...(me.preferredVibes ?? []), ...(me.dietary ?? [])];
+              if (tags.length === 0) {
+                return (
+                  <Pressable onPress={() => { hapticImpact(); setEditing(true); }}>
+                    <Text variant="small" tone="muted">Add your vibes and dietary preferences →</Text>
+                  </Pressable>
+                );
+              }
+              return (
+                <View style={styles.tasteRow}>
+                  {tags.map((t) => (
+                    <View key={t} style={styles.tasteTag}>
+                      <Text variant="smallMedium" tone="base">{t}</Text>
+                    </View>
+                  ))}
+                </View>
+              );
+            })()}
+          </Animated.View>
+
           <Animated.View entering={reduceMotion ? undefined : FadeInDown.delay(320).duration(360)}>
             <View style={[styles.sectionLabel, { marginTop: space.lg }]}>
               <Text variant="labelStrong" style={styles.sectionLabelText}>FAVORITE RESTAURANTS</Text>
@@ -405,6 +443,8 @@ function ProfileInner() {
           </Text>
         </View>
       </Animated.View>
+
+      {me && <EditProfileSheet me={me} visible={editing} onClose={() => setEditing(false)} />}
     </Screen>
   );
 }
@@ -453,6 +493,16 @@ const styles = StyleSheet.create({
   avatar: { width: AVATAR_SIZE, height: AVATAR_SIZE, borderRadius: 999 },
   identityText: { flex: 1 },
   displayName: { lineHeight: 36 },
+  editButton: {
+    width: 34,
+    height: 34,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.35)',
+  },
   subtitleRowLight: { flexDirection: 'row', alignItems: 'center', marginTop: 6, gap: SUBTITLE_GAP },
   subtitleRuleLight: { width: 18, height: 1, backgroundColor: 'rgba(255,255,255,0.55)' },
   rankText: { opacity: 0.9, fontSize: 12 },
@@ -509,6 +559,17 @@ const styles = StyleSheet.create({
 
   // Streak
   streakWrap: { marginTop: space.lg },
+
+  // Taste tags
+  tasteRow: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
+  tasteTag: {
+    backgroundColor: color.surface,
+    borderWidth: 1,
+    borderColor: color.border,
+    borderRadius: radius.pill,
+    paddingVertical: 6,
+    paddingHorizontal: space.md,
+  },
 
   // Favorites
   favRow: { flexDirection: 'row', gap: 12 },
