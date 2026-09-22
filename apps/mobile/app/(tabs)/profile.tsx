@@ -19,7 +19,7 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import { MotiView } from 'moti';
-import { LogIn, ChevronRight, Pencil } from 'lucide-react-native';
+import { LogIn, ChevronRight, Pencil, Check } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { Screen, Text, color, radius, shadow, space } from '@unsung/ui';
 import { Badge } from '@/components/gamification/Badge';
@@ -129,7 +129,9 @@ function ProfileInner() {
   }
 
   // ── Loading skeleton — geometry mirrors loaded layout pixel-for-pixel ──
-  if (isLoading || !stats) {
+  // !me is implied by !stats (stats query is enabled: !!me?.id), but TS can't infer
+  // that — narrow it here so the logged-in body can use `me` without optional chains.
+  if (isLoading || !stats || (isLoggedIn && !me)) {
     return (
       <Screen padded={false}>
         <View style={styles.scrollContent}>
@@ -267,9 +269,16 @@ function ProfileInner() {
                 <View style={styles.subtitleRowLight}>
                   <View style={styles.subtitleRuleLight} />
                   <Text variant="small" tone="surface" style={styles.rankText}>
-                    {stats.rank} · {Math.round((stats.rankProgress ?? 0) * 100)}% to next
+                    {stats.nextRank
+                      ? `${stats.rank} · ${Math.round((stats.rankProgress ?? 0) * 100)}% to ${stats.nextRank}`
+                      : `${stats.rank} · max rank`}
                   </Text>
                 </View>
+                {stats.dishesToNext != null && stats.dishesToNext > 0 && (
+                  <Text variant="small" tone="surface" style={styles.rankHint}>
+                    Log {stats.dishesToNext} more {stats.dishesToNext === 1 ? 'dish' : 'dishes'} to rank up
+                  </Text>
+                )}
               </View>
               <Pressable
                 onPress={() => { hapticImpact(); setEditing(true); }}
@@ -333,6 +342,55 @@ function ProfileInner() {
 
         {/* Content */}
         <View style={styles.body}>
+          {/* Get started — nudges new users to complete their profile + log dishes.
+              Client-derived only (no backend). Whole section unmounts once every item is done. */}
+          {(() => {
+            const items = [
+              { label: 'Add your name', done: !!me.displayName?.trim() },
+              { label: 'Add a profile photo', done: !!me.avatarUrl },
+              { label: 'Add your taste preferences', done: (me.preferredVibes?.length ?? 0) + (me.dietary?.length ?? 0) > 0 },
+              { label: 'Log 3 dishes', done: (stats.totalDishesLogged ?? 0) >= 3 },
+            ];
+            if (items.every((i) => i.done)) return null;
+            const doneCount = items.filter((i) => i.done).length;
+            return (
+              <Animated.View
+                entering={reduceMotion ? undefined : FadeInDown.delay(180).duration(360)}
+                style={{ marginBottom: space.lg }}
+              >
+                <View style={styles.sectionLabel}>
+                  <Text variant="labelStrong" style={styles.sectionLabelText}>GET STARTED</Text>
+                  <View style={styles.sectionLabelLine} />
+                  <Text variant="label" tone="muted" style={styles.sectionCount}>
+                    {doneCount}/{items.length}
+                  </Text>
+                </View>
+                <View style={styles.checklistCard}>
+                  {items.map((item) => (
+                    <Pressable
+                      key={item.label}
+                      onPress={() => { if (!item.done) { hapticImpact(); setEditing(true); } }}
+                      disabled={item.done}
+                      style={styles.checklistRow}
+                    >
+                      <View style={[styles.checkDot, item.done && styles.checkDotDone]}>
+                        {item.done && <Check size={12} color={color.surface} strokeWidth={3} />}
+                      </View>
+                      <Text
+                        variant="smallMedium"
+                        tone={item.done ? 'muted' : 'base'}
+                        style={item.done ? styles.checkLabelDone : undefined}
+                      >
+                        {item.label}
+                      </Text>
+                      {!item.done && <ChevronRight size={14} color={color.text.muted} strokeWidth={2.5} style={{ marginLeft: 'auto' }} />}
+                    </Pressable>
+                  ))}
+                </View>
+              </Animated.View>
+            );
+          })()}
+
           <Animated.View entering={reduceMotion ? undefined : FadeInDown.delay(200).duration(360)}>
             <View style={styles.sectionLabel}>
               <Text variant="labelStrong" style={styles.sectionLabelText}>ACHIEVEMENTS</Text>
@@ -506,6 +564,7 @@ const styles = StyleSheet.create({
   subtitleRowLight: { flexDirection: 'row', alignItems: 'center', marginTop: 6, gap: SUBTITLE_GAP },
   subtitleRuleLight: { width: 18, height: 1, backgroundColor: 'rgba(255,255,255,0.55)' },
   rankText: { opacity: 0.9, fontSize: 12 },
+  rankHint: { opacity: 0.75, fontSize: 11, marginTop: 3 },
 
   progressBar: {
     marginTop: space.md + 4,
@@ -556,6 +615,27 @@ const styles = StyleSheet.create({
     ...shadow.card,
   },
   badgeRow: { flexDirection: 'row', gap: space.sm, justifyContent: 'space-around' },
+
+  // Get started checklist
+  checklistCard: {
+    backgroundColor: color.surface,
+    borderRadius: radius.lg,
+    paddingVertical: space.xs,
+    paddingHorizontal: space.md,
+    ...shadow.card,
+  },
+  checklistRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingVertical: space.sm + 2 },
+  checkDot: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: color.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkDotDone: { backgroundColor: color.primary.base, borderColor: color.primary.base },
+  checkLabelDone: { textDecorationLine: 'line-through' },
 
   // Streak
   streakWrap: { marginTop: space.lg },

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
-import { Award, Compass, BookOpen, Sun, Leaf, Shield, Soup } from 'lucide-react-native';
+import { Award, Compass, BookOpen, Sun, Leaf, Shield, Soup, Flame } from 'lucide-react-native';
 import type { Badge as BadgeType } from '@unsung/contracts';
 import { color, radius, space, Text } from '@unsung/ui';
 
@@ -8,6 +8,7 @@ const ICONS = {
   shield: Shield,
   medal: Award,
   bowl: Soup,
+  flame: Flame,
   compass: Compass,
   sun: Sun,
   leaf: Leaf,
@@ -43,6 +44,16 @@ export function Badge({ badge }: { badge: BadgeType }) {
       >
         {badge.title}
       </Text>
+      {badge.description ? (
+        <Text
+          variant="small"
+          tone="muted"
+          style={{ marginTop: 2, textAlign: 'center' }}
+          numberOfLines={2}
+        >
+          {badge.description}
+        </Text>
+      ) : null}
     </View>
   );
 }
