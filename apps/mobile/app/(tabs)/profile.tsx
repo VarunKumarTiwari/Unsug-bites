@@ -75,7 +75,7 @@ function ProfileInner() {
   });
   const { data: stats, isLoading, refetch } = useQuery({
     queryKey: ['gamification', me?.id],
-    queryFn: () => gamification.getState(me!.id),
+    queryFn: () => gamification.getState('me'),
     enabled: !!me?.id,
   });
   const { data: nearby } = useQuery({
