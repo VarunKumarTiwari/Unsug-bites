@@ -1,7 +1,8 @@
 import type { User } from '@unsung/contracts';
 import { Platform } from 'react-native';
+import * as ImageManipulator from 'expo-image-manipulator';
 import alex from '@/lib/mock/users_u_alex.json';
-import { apiFetch, withMock } from './_client';
+import { apiFetch, withMock, USE_MOCK } from './_client';
 
 export async function getMe(): Promise<User> {
   return withMock(
@@ -27,22 +28,25 @@ export async function updateMe(patch: UserPatch): Promise<User> {
 }
 
 // Upload a new avatar photo. Backend re-encodes + stores it and returns the
-// full updated profile with the new avatarUrl. Same multipart shape as scan.
+// full updated profile with the new avatarUrl.
+//
+// Not wrapped in withMock: a failed avatar upload must NOT silently fall back to
+// a fake success (mock) — the user needs to see the real error and retry.
 export async function uploadAvatar(imageUri: string): Promise<User> {
-  return withMock(
-    'users.uploadAvatar',
-    async () => {
-      const form = new FormData();
-      // Web: the RN { uri, name, type } shape stringifies to "[object Object]" and no file
-      // part is sent — fetch the uri into a real Blob. Native: use the RN file-part shape.
-      if (Platform.OS === 'web') {
-        const blob = await (await fetch(imageUri)).blob();
-        form.append('image', blob, 'avatar.jpg');
-      } else {
-        form.append('image', { uri: imageUri, name: 'avatar.jpg', type: 'image/jpeg' } as any);
-      }
-      return apiFetch<User>('/users/me/avatar', { method: 'POST', body: form, timeoutMs: 20000 });
-    },
-    () => ({ ...(alex as User), avatarUrl: imageUri }),
-  );
+  if (USE_MOCK) return { ...(alex as User), avatarUrl: imageUri };
+  const jpeg = await ImageManipulator.manipulateAsync(imageUri, [], {
+    compress: 0.9,
+    format: ImageManipulator.SaveFormat.JPEG,
+  });
+
+  const form = new FormData();
+  // Web: the RN { uri, name, type } shape stringifies to "[object Object]" and no file
+  // part is sent — fetch the uri into a real Blob. Native: use the RN file-part shape.
+  if (Platform.OS === 'web') {
+    const blob = await (await fetch(jpeg.uri)).blob();
+    form.append('image', blob, 'avatar.jpg');
+  } else {
+    form.append('image', { uri: jpeg.uri, name: 'avatar.jpg', type: 'image/jpeg' } as any);
+  }
+  return apiFetch<User>('/users/me/avatar', { method: 'POST', body: form, timeoutMs: 20000 });
 }

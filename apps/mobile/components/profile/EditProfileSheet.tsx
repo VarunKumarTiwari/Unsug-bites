@@ -141,7 +141,7 @@ export function EditProfileSheet({ me, visible, onClose }: Props) {
             )}
             {avatarMutation.isError && (
               <Text variant="small" tone="muted" style={styles.error}>
-                Couldn’t upload photo — try a different image.
+                {(avatarMutation.error as Error)?.message || 'Couldn’t upload photo, try a different image.'}
               </Text>
             )}
           </ScrollView>

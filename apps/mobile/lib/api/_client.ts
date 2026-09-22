@@ -59,12 +59,20 @@ export async function apiFetch<T>(path: string, init: ApiInit = {}): Promise<T> 
     clearTimeout(timer);
   }
 
-  if (!res.ok) {
-    throw new ApiError(`${res.status} for ${path}`, res.status);
-  }
-
   // 204 / empty body → null; callers that expect a body will treat it as failure upstream.
   const text = await res.text();
+
+  if (!res.ok) {
+    // Surface the backend's message ({"message": "..."}) so the UI can show
+    // "Max 10MB" / "Image uploads only" instead of a bare status code.
+    let message = `${res.status} for ${path}`;
+    try {
+      const parsed = JSON.parse(text);
+      if (parsed?.message) message = parsed.message;
+    } catch { /* non-JSON error body — keep the status fallback */ }
+    throw new ApiError(message, res.status);
+  }
+
   if (!text) return null as T;
   try {
     return JSON.parse(text) as T;
