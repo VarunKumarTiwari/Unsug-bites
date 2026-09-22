@@ -12,11 +12,15 @@ export async function listForUser(userId: string): Promise<Review[]> {
 }
 
 export async function submit(input: ReviewInput): Promise<Review> {
+  // Stamp the device's IANA zone so local-time badges (e.g. Dawn Patrol) work
+  // anywhere, not just the server's region. Server falls back to UTC if absent.
+  const tz = input.tz ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
   return withMock(
     'reviews.submit',
-    () => apiFetch<Review>('/reviews', { method: 'POST', body: input }),
+    () => apiFetch<Review>('/reviews', { method: 'POST', body: { ...input, tz } }),
     () => ({
       ...input,
+      tz,
       id: `rev_${Math.floor(Math.random() * 1e9).toString(36)}`,
       createdAt: new Date().toISOString(),
     }),

@@ -87,6 +87,7 @@ export interface Review {
   note?: string;
   scanId?: string | null;
   photoUrl?: string | null;
+  tz?: string | null; // device IANA timezone for local-time badges
   createdAt: string;
 }
 
@@ -108,6 +109,8 @@ export interface UserGameState {
   totalDishesLogged: number;
   rank?: string;
   rankProgress?: number; // 0..1
+  nextRank?: string | null; // null at top rank
+  dishesToNext?: number | null; // dishes still to log to reach nextRank; null at top rank
   badges: Badge[];
 }
 
