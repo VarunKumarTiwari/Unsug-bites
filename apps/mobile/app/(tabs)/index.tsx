@@ -20,7 +20,7 @@ import { Search, AlertCircle, RefreshCw, MapPin } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { Screen, Text, color, radius, space, spring } from '@unsung/ui';
 import { RestaurantCard } from '@/components/restaurant/RestaurantCard';
-import { FauxMap } from '@/components/map/FauxMap';
+import { RestaurantMap } from '@/components/map/RestaurantMap';
 import { discovery } from '@/lib/api';
 import { useReduceMotion } from '@/hooks/useReduceMotion';
 import { useLocation } from '@/hooks/useLocation';
@@ -344,7 +344,10 @@ export default function Home() {
       <Animated.View style={contentAnimStyle}>
         {feedView === 'map' && (
           <View style={styles.mapWrap}>
-            <FauxMap restaurants={filteredData} />
+            <RestaurantMap
+              userCoords={coords}
+              activeVibes={activeVibe ? [activeVibe] : []}
+            />
           </View>
         )}
 
